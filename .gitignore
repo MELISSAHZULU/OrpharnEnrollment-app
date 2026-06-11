@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+*.sqlite3
+*.db
+
+# Django
+*.log
+media/
+staticfiles/
+
+# Flutter
+.DartTool/
+.pub/
+build/
+*.lock
+
+# IDE
+.vscode/
+.DS_Store
