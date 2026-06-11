@@ -1,22 +1,12 @@
-# Python
+venv/
 __pycache__/
 *.pyc
-venv/
-env/
 *.sqlite3
-*.db
-
-# Django
 *.log
-media/
-staticfiles/
-
-# Flutter
+.DS_Store
+.vscode/
+backend/media/
+backend/staticfiles/
 .DartTool/
 .pub/
 build/
-*.lock
-
-# IDE
-.vscode/
-.DS_Store
