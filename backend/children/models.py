@@ -50,3 +50,19 @@ class Child(models.Model):
         from datetime import date
         today = date.today()
         return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+
+class MedicalRecord(models.Model):
+    child = models.ForeignKey(Child, on_delete=models.CASCADE, related_name='medical_records')
+    record_date = models.DateTimeField(auto_now_add=True)
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    diagnosis = models.TextField()
+    treatment = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
+    
+class Vaccination(models.Model):
+    child = models.ForeignKey(Child, on_delete=models.CASCADE, related_name='vaccinations')
+    vaccine_name = models.CharField(max_length=100)
+    date_given = models.DateField()
+    next_due_date = models.DateField(null=True, blank=True)
+    administered_by = models.CharField(max_length=200)
+    notes = models.TextField(blank=True)

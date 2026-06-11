@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'children',
     'resources',
     'notifications',
+    'orphanages',
+    'staff',
 ]
 
 MIDDLEWARE = [

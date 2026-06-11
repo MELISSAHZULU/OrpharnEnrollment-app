@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../staff/staff_list_screen.dart';
-import '../orphanages/orphanage_list_screen.dart';
+//import '../orphanages/orphanage_list_screen.dart';
+import '../children/children_list_screen.dart';
+import '../resources/bed_screen.dart';
+import '../children/enroll_child_screen.dart';
+import '../transport/transport_request_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -26,42 +30,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
   
   Future<void> _loadDashboardData() async {
-    setState(() => _isLoading = true);
-    try {
-      // Load all data in parallel
-      final results = await Future.wait([
-        _apiService.getChildren(),
-        _apiService.getBedAvailability(),
-        _apiService.getStaff(),
-        _apiService.getOrphanages(),
-        _apiService.getRecentActivities(),
-      ]);
-      
-      final children = results[0] as List;
-      final bedsResponse = results[1] as Map<String, dynamic>;
-      final staff = results[2] as List;
-      final orphanages = results[3] as List;
-      final activities = results[4] as List;
-      
-      setState(() {
-        _totalChildren = children.length;
-        _availableBeds = bedsResponse['available_beds'] ?? 0;
-        _totalStaff = staff.length;
-        _activeStaff = staff.where((s) => s['is_active'] == true).length;
-        _activeOrphanages = orphanages.where((o) => o['is_active'] == true).length;
-        _recentActivities = activities.cast<Map<String, dynamic>>();
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      print('Error loading dashboard: $e');
-      
-      // Show error snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading dashboard: $e'), backgroundColor: Colors.red),
-      );
-    }
+  setState(() => _isLoading = true);
+  try {
+    // Load all data in parallel
+    final results = await Future.wait([
+      _apiService.getChildren(),
+      _apiService.getBedAvailability(),
+      _apiService.getStaff(),
+      _apiService.getOrphanages(),
+      _apiService.getRecentActivities(),
+    ]);
+    
+    final children = results[0] as List;
+    final bedsResponse = results[1] as Map<String, dynamic>;
+    final staff = results[2] as List;
+    final orphanages = results[3] as List;
+    final activities = results[4] as List<Map<String, dynamic>>;
+    
+    setState(() {
+      _totalChildren = children.length;
+      _availableBeds = bedsResponse['available_beds'] ?? 0;
+      _totalStaff = staff.length;
+      _activeStaff = staff.where((s) => s['is_active'] == true).length;
+      _activeOrphanages = orphanages.where((o) => o['is_active'] == true).length;
+      _recentActivities = activities;
+      _isLoading = false;
+    });
+  } catch (e) {
+    setState(() => _isLoading = false);
+    print('Error loading dashboard: $e');
+    
+    // Show error snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error loading dashboard: $e'), backgroundColor: Colors.red),
+    );
   }
+}
   
   @override
   Widget build(BuildContext context) {
@@ -276,41 +280,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
   
   Widget _buildActivityItem(Map<String, dynamic> activity) {
-    IconData icon;
-    Color color;
-    
-    switch(activity['type']) {
-      case 'enrollment':
-        icon = Icons.person_add;
-        color = Colors.green;
-        break;
-      case 'transport':
-        icon = Icons.directions_car;
-        color = Colors.orange;
-        break;
-      case 'staff':
-        icon = Icons.person;
-        color = Colors.blue;
-        break;
-      case 'orphanage':
-        icon = Icons.business;
-        color = Colors.purple;
-        break;
-      default:
-        icon = Icons.notification;
-        color = Colors.grey;
-    }
-    
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.2),
-        child: Icon(icon, color: color, size: 20),
-      ),
-      title: Text(activity['title'], style: TextStyle(fontWeight: FontWeight.w500)),
-      subtitle: Text(activity['description']),
-      trailing: Text(activity['time'], style: TextStyle(fontSize: 12, color: Colors.grey)),
-    );
+  IconData icon;
+  Color color;
+  
+  switch(activity['type']) {
+    case 'enrollment':
+      icon = Icons.person_add;
+      color = Colors.green;
+      break;
+    case 'transport':
+      icon = Icons.directions_car;
+      color = Colors.orange;
+      break;
+    case 'staff':
+      icon = Icons.person;
+      color = Colors.blue;
+      break;
+    case 'orphanage':
+      icon = Icons.business;
+      color = Colors.purple;
+      break;
+    default:
+      icon = Icons.notifications;  // Changed from Icons.notification
+      color = Colors.grey;
   }
+  
+  return ListTile(
+    leading: CircleAvatar(
+      backgroundColor: color.withOpacity(0.2),
+      child: Icon(icon, color: color, size: 20),
+    ),
+    title: Text(activity['title'], style: TextStyle(fontWeight: FontWeight.w500)),
+    subtitle: Text(activity['description']),
+    trailing: Text(activity['time'], style: TextStyle(fontSize: 12, color: Colors.grey)),
+  );
+}
   
   void _navigateToChildren(BuildContext context) {
     Navigator.pushNamed(context, '/children');
