@@ -1,13 +1,33 @@
+# Virtual Environment
 venv/
+env/
+
+# Python
 __pycache__/
 *.pyc
-*.sqlite3
+*.pyo
+*.pyd
+
+# Django
 *.log
-.DS_Store
-.vscode/
-backend/media/
-backend/staticfiles/
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+
+# Flutter
 .DartTool/
 .pub/
 build/
-venv/
+*.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# OS
+Thumbs.db
+desktop.ini
