@@ -10,3 +10,4 @@ backend/staticfiles/
 .DartTool/
 .pub/
 build/
+venv/
