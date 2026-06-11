@@ -54,7 +54,30 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     _buildInfoRow(Icons.email, 'Email', user?.email ?? 'Not set'),
                     _buildInfoRow(Icons.phone, 'Phone', user?.phoneNumber ?? 'Not set'),
-                    _buildInfoRow(Icons.business, 'Organization', user?.orphanageName ?? 'System'),
+                    _buildInfoRow(Icons.business, 'Orphanage', user?.orphanageName ?? 'Not assigned'),
+                    _buildInfoRow(Icons.people, 'Role', role.displayName),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Show permissions summary
+            Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your Access Level',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Divider(),
+                    _buildPermissionTile('Add Orphanage', RolePermissions.canAddOrphanage(role)),
+                    _buildPermissionTile('Edit Orphanage', RolePermissions.canEditOrphanage(role)),
+                    _buildPermissionTile('View All Orphanages', RolePermissions.canViewAllOrphanages(role)),
+                    _buildPermissionTile('Manage Staff', role == UserRole.orphanageDirector || role == UserRole.superAdmin),
+                    _buildPermissionTile('Enroll Children', role != UserRole.viewer && role != UserRole.donor),
                   ],
                 ),
               ),
@@ -79,22 +102,43 @@ class ProfileScreen extends StatelessWidget {
     );
   }
   
+  Widget _buildPermissionTile(String permission, bool hasAccess) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(
+            hasAccess ? Icons.check_circle : Icons.cancel,
+            color: hasAccess ? Colors.green : Colors.red,
+            size: 20,
+          ),
+          SizedBox(width: 12),
+          Text(permission),
+        ],
+      ),
+    );
+  }
+  
   Color _getRoleColor(UserRole role) {
     switch (role) {
       case UserRole.superAdmin:
         return Colors.purple;
-      case UserRole.healthcareWorker:
-        return Colors.teal;
       case UserRole.orphanageDirector:
         return Colors.blue;
+      case UserRole.orphanageStaff:
+        return Colors.lightBlue;
       case UserRole.socialWorker:
         return Colors.green;
+      case UserRole.healthcareWorker:
+        return Colors.teal;
       case UserRole.villageHead:
         return Colors.orange;
       case UserRole.donor:
         return Colors.pink;
       case UserRole.governmentOfficial:
         return Colors.indigo;
+      case UserRole.viewer:
+        return Colors.grey;
       default:
         return Colors.blue;
     }
@@ -104,18 +148,22 @@ class ProfileScreen extends StatelessWidget {
     switch (role) {
       case UserRole.superAdmin:
         return Icons.admin_panel_settings;
-      case UserRole.healthcareWorker:
-        return Icons.medical_services;
       case UserRole.orphanageDirector:
         return Icons.business;
+      case UserRole.orphanageStaff:
+        return Icons.people_outline;
       case UserRole.socialWorker:
         return Icons.people;
+      case UserRole.healthcareWorker:
+        return Icons.medical_services;
       case UserRole.villageHead:
         return Icons.location_city;
       case UserRole.donor:
         return Icons.favorite;
       case UserRole.governmentOfficial:
         return Icons.account_balance;
+      case UserRole.viewer:
+        return Icons.visibility;
       default:
         return Icons.person;
     }

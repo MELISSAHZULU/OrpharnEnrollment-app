@@ -105,52 +105,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         title: Text(_getAppTitle(userRole)),
         centerTitle: true,
         backgroundColor: _getRoleColor(userRole),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.directions_car),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TransportRequestScreen()),
-              );
-            },
-            tooltip: 'Request Transport',
-          ),
-          IconButton(
-            icon: Icon(Icons.person_add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => EnrollChildScreen()),
-              );
-            },
-            tooltip: 'Enroll Child',
-          ),
-          PopupMenuButton<String>(
-            icon: Icon(Icons.person),
-            onSelected: (value) async {
-              if (value == 'profile') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfileScreen()),
-                );
-              } else if (value == 'logout') {
-                await authProvider.logout();
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'profile',
-                child: Row(children: [Icon(Icons.account_circle), SizedBox(width: 12), Text('My Profile')]),
-              ),
-              PopupMenuItem(
-                value: 'logout',
-                child: Row(children: [Icon(Icons.logout, color: Colors.red), SizedBox(width: 12), Text('Logout', style: TextStyle(color: Colors.red))]),
-              ),
-            ],
-          ),
-        ],
+        actions: _getAppBarActions(userRole, authProvider, context),
       ),
       body: screens.isNotEmpty ? screens[_selectedIndex] : UnauthorizedScreen(),
       bottomNavigationBar: navItems.isNotEmpty
@@ -163,6 +118,119 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               unselectedItemColor: Colors.grey,
             )
           : null,
+      floatingActionButton: _getFloatingActionButton(userRole, context),
+    );
+  }
+  
+  List<Widget> _getAppBarActions(UserRole role, AuthProvider authProvider, BuildContext context) {
+    List<Widget> actions = [];
+    
+    // Transport Request Button - Only for roles that need transport
+    if (role == UserRole.healthcareWorker || 
+        role == UserRole.socialWorker || 
+        role == UserRole.orphanageStaff ||
+        role == UserRole.orphanageDirector) {
+      actions.add(
+        IconButton(
+          icon: Icon(Icons.directions_car),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => TransportRequestScreen()));
+          },
+          tooltip: 'Request Transport',
+        ),
+      );
+    }
+    
+    // Enroll Child Button - Not for viewers or donors
+    if (role != UserRole.viewer && role != UserRole.donor && role != UserRole.governmentOfficial) {
+      actions.add(
+        IconButton(
+          icon: Icon(Icons.person_add),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => EnrollChildScreen()));
+          },
+          tooltip: 'Enroll Child',
+        ),
+      );
+    }
+    
+    // Add Orphanage Button - Only for super admin and orphanage directors
+    if (role == UserRole.superAdmin || role == UserRole.orphanageDirector) {
+      actions.add(
+        IconButton(
+          icon: Icon(Icons.add_business),
+          onPressed: () {
+            _showAddOrphanageDialog(context);
+          },
+          tooltip: 'Add Orphanage',
+        ),
+      );
+    }
+    
+    // Add Staff Button - Only for super admin and orphanage directors
+    if (role == UserRole.superAdmin || role == UserRole.orphanageDirector) {
+      actions.add(
+        IconButton(
+          icon: Icon(Icons.person_add_alt),
+          onPressed: () {
+            _showAddStaffDialog(context);
+          },
+          tooltip: 'Add Staff',
+        ),
+      );
+    }
+    
+    // Profile Menu
+    actions.add(
+      PopupMenuButton<String>(
+        icon: Icon(Icons.person),
+        onSelected: (value) async {
+          if (value == 'profile') {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+          } else if (value == 'logout') {
+            await authProvider.logout();
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'profile',
+            child: Row(
+              children: [
+                Icon(Icons.account_circle),
+                SizedBox(width: 12),
+                Text('My Profile'),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'logout',
+            child: Row(
+              children: [
+                Icon(Icons.logout, color: Colors.red),
+                SizedBox(width: 12),
+                Text('Logout', style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    
+    return actions;
+  }
+  
+  void _showAddOrphanageDialog(BuildContext context) {
+    // TODO: Implement add orphanage dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Add Orphanage feature coming soon')),
+    );
+  }
+  
+  void _showAddStaffDialog(BuildContext context) {
+    // TODO: Implement add staff dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Add Staff feature coming soon')),
     );
   }
   
@@ -180,11 +248,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         return [
           BottomNavigationBarItem(icon: Icon(Icons.medical_services), label: 'Medical'),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_add), label: 'Enroll'),
           BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
           BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
       case UserRole.orphanageDirector:
+      case UserRole.orphanageStaff:
         return [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
@@ -192,11 +260,41 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
           BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
+      case UserRole.socialWorker:
+        return [
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Cases'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        ];
+      case UserRole.villageHead:
+        return [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Village'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Reports'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        ];
+      case UserRole.donor:
+        return [
+          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Sponsors'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        ];
+      case UserRole.governmentOfficial:
+        return [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
+          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        ];
+      case UserRole.viewer:
+        return [
+          BottomNavigationBarItem(icon: Icon(Icons.visibility), label: 'View'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
+        ];
       default:
         return [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
     }
   }
@@ -206,29 +304,108 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       case UserRole.superAdmin:
         return [DashboardScreen(), ChildrenListScreen(), OrphanageListScreen(), StaffListScreen(), NotificationsScreen()];
       case UserRole.healthcareWorker:
-        return [HealthcareDashboard(), ChildrenListScreen(), EnrollChildScreen(), BedScreen(), NotificationsScreen()];
+        return [HealthcareDashboard(), ChildrenListScreen(), BedScreen(), NotificationsScreen()];
       case UserRole.orphanageDirector:
+      case UserRole.orphanageStaff:
         return [DashboardScreen(), ChildrenListScreen(), StaffListScreen(), BedScreen(), NotificationsScreen()];
-      default:
+      case UserRole.socialWorker:
         return [DashboardScreen(), ChildrenListScreen(), NotificationsScreen()];
+      case UserRole.villageHead:
+        return [DashboardScreen(), ChildrenListScreen(), NotificationsScreen()];
+      case UserRole.donor:
+        return [DashboardScreen(), ChildrenListScreen(), NotificationsScreen()];
+      case UserRole.governmentOfficial:
+        return [DashboardScreen(), OrphanageListScreen(), DashboardScreen(), NotificationsScreen()];
+      case UserRole.viewer:
+        return [DashboardScreen(), ChildrenListScreen(), OrphanageListScreen()];
+      default:
+        return [DashboardScreen(), ChildrenListScreen()];
+    }
+  }
+  
+  Widget? _getFloatingActionButton(UserRole role, BuildContext context) {
+    // Only show FAB for roles that need quick actions
+    switch (role) {
+      case UserRole.healthcareWorker:
+        return FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => EnrollChildScreen()));
+          },
+          icon: Icon(Icons.emergency),
+          label: Text('Emergency'),
+          backgroundColor: Colors.red,
+        );
+      case UserRole.orphanageDirector:
+      case UserRole.orphanageStaff:
+        return FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => EnrollChildScreen()));
+          },
+          icon: Icon(Icons.add),
+          label: Text('Enroll'),
+          backgroundColor: Colors.green,
+        );
+      case UserRole.socialWorker:
+        return FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => EnrollChildScreen()));
+          },
+          icon: Icon(Icons.person_add),
+          label: Text('New Case'),
+          backgroundColor: Colors.blue,
+        );
+      default:
+        return null;
     }
   }
   
   String _getAppTitle(UserRole role) {
     switch (role) {
-      case UserRole.superAdmin: return 'Admin Portal';
-      case UserRole.healthcareWorker: return 'Healthcare Portal';
-      case UserRole.orphanageDirector: return 'Orphanage Portal';
-      default: return 'Orphan Enrollment System';
+      case UserRole.superAdmin:
+        return 'Admin Portal';
+      case UserRole.healthcareWorker:
+        return 'Healthcare Portal';
+      case UserRole.orphanageDirector:
+        return 'Director Portal';
+      case UserRole.orphanageStaff:
+        return 'Staff Portal';
+      case UserRole.socialWorker:
+        return 'Social Services';
+      case UserRole.villageHead:
+        return 'Village Portal';
+      case UserRole.donor:
+        return 'Sponsor Portal';
+      case UserRole.governmentOfficial:
+        return 'Government Portal';
+      case UserRole.viewer:
+        return 'Viewer Portal';
+      default:
+        return 'Orphan Enrollment System';
     }
   }
   
   Color _getRoleColor(UserRole role) {
     switch (role) {
-      case UserRole.superAdmin: return Colors.purple;
-      case UserRole.healthcareWorker: return Colors.teal;
-      case UserRole.orphanageDirector: return Colors.blue;
-      default: return Colors.blue;
+      case UserRole.superAdmin:
+        return Colors.purple;
+      case UserRole.healthcareWorker:
+        return Colors.teal;
+      case UserRole.orphanageDirector:
+        return Colors.blue;
+      case UserRole.orphanageStaff:
+        return Colors.lightBlue;
+      case UserRole.socialWorker:
+        return Colors.green;
+      case UserRole.villageHead:
+        return Colors.orange;
+      case UserRole.donor:
+        return Colors.pink;
+      case UserRole.governmentOfficial:
+        return Colors.indigo;
+      case UserRole.viewer:
+        return Colors.grey;
+      default:
+        return Colors.blue;
     }
   }
 }

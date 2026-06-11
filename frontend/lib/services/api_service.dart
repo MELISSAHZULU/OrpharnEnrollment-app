@@ -28,7 +28,6 @@ class ApiService {
       );
       
       print('Login status: ${response.statusCode}');
-      print('Login response: ${response.body}');
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -130,16 +129,26 @@ class ApiService {
   // ==================== CHILDREN MANAGEMENT ====================
   
   Future<List<dynamic>> getChildren() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/children/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['results'] ?? data;
-    } else {
-      throw Exception('Failed to load children');
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/children/'),
+        headers: await _getHeaders(),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is List) {
+          return data;
+        } else if (data['results'] != null) {
+          return data['results'];
+        }
+        return [];
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error loading children: $e');
+      return [];
     }
   }
   
@@ -184,145 +193,46 @@ class ApiService {
     }
   }
   
-  Future<void> deleteChild(int childId) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/children/$childId/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode != 204) {
-      throw Exception('Failed to delete child');
-    }
-  }
-  
-  // ==================== EMERGENCY ENROLLMENT (Healthcare) ====================
-  
-  Future<Map<String, dynamic>> emergencyEnrollment(Map<String, dynamic> enrollmentData) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/children/emergency/'),
-      headers: await _getHeaders(),
-      body: json.encode(enrollmentData),
-    );
-    
-    if (response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to process emergency enrollment');
-    }
-  }
-  
-  Future<Map<String, dynamic>> birthEnrollment(Map<String, dynamic> birthData) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/children/birth-enrollment/'),
-      headers: await _getHeaders(),
-      body: json.encode(birthData),
-    );
-    
-    if (response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to process birth enrollment');
-    }
-  }
-  
-  // ==================== MEDICAL RECORDS ====================
-  
-  Future<List<dynamic>> getMedicalRecords(int childId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/children/$childId/medical-records/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load medical records');
-    }
-  }
-  
-  Future<Map<String, dynamic>> addMedicalRecord(int childId, Map<String, dynamic> recordData) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/children/$childId/medical-records/'),
-      headers: await _getHeaders(),
-      body: json.encode(recordData),
-    );
-    
-    if (response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to add medical record');
-    }
-  }
-  
-  Future<Map<String, dynamic>> recordVaccination(int childId, Map<String, dynamic> vaccineData) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/children/$childId/vaccinations/'),
-      headers: await _getHeaders(),
-      body: json.encode(vaccineData),
-    );
-    
-    if (response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to record vaccination');
-    }
-  }
-  
-  Future<List<dynamic>> getVaccinations(int childId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/children/$childId/vaccinations/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load vaccinations');
-    }
-  }
-  
   // ==================== BED MANAGEMENT ====================
   
-  Future<Map<String, dynamic>> getBedAvailability() async {
+Future<Map<String, dynamic>> getBedAvailability() async {
+  try {
     final response = await http.get(
       Uri.parse('$baseUrl/resources/beds/'),
       headers: await _getHeaders(),
     );
     
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final data = json.decode(response.body);
+      if (data is Map && data['results'] != null) {
+        final beds = data['results'];
+        int availableBeds = 0;
+        for (var bed in beds) {
+          availableBeds += (bed['available_beds'] ?? 0) as int;
+        }
+        return {
+          'available_beds': availableBeds,
+          'results': beds,
+        };
+      } else if (data is List) {
+        int availableBeds = 0;
+        for (var bed in data) {
+          availableBeds += (bed['available_beds'] ?? 0) as int;
+        }
+        return {
+          'available_beds': availableBeds,
+          'results': data,
+        };
+      }
+      return {'available_beds': 0, 'results': []};
     } else {
-      throw Exception('Failed to load bed data');
+      return {'available_beds': 0, 'results': []};
     }
+  } catch (e) {
+    print('Error loading bed data: $e');
+    return {'available_beds': 0, 'results': []};
   }
-  
-  Future<Map<String, dynamic>> addBedSpace(Map<String, dynamic> bedData) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/resources/beds/'),
-      headers: await _getHeaders(),
-      body: json.encode(bedData),
-    );
-    
-    if (response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to add bed space');
-    }
-  }
-  
-  Future<Map<String, dynamic>> updateBedSpace(int bedId, Map<String, dynamic> bedData) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/resources/beds/$bedId/'),
-      headers: await _getHeaders(),
-      body: json.encode(bedData),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to update bed space');
-    }
-  }
+}
   
   // ==================== TRANSPORT MANAGEMENT ====================
   
@@ -340,20 +250,6 @@ class ApiService {
     }
   }
   
-  Future<Map<String, dynamic>> requestEmergencyTransport(Map<String, dynamic> transportData) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/transport/emergency/'),
-      headers: await _getHeaders(),
-      body: json.encode(transportData),
-    );
-    
-    if (response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to request emergency transport');
-    }
-  }
-  
   Future<List<dynamic>> getTransportRequests() async {
     try {
       final response = await http.get(
@@ -363,7 +259,12 @@ class ApiService {
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['results'] ?? [];
+        if (data is List) {
+          return data;
+        } else if (data['results'] != null) {
+          return data['results'];
+        }
+        return [];
       } else {
         return [];
       }
@@ -373,32 +274,31 @@ class ApiService {
     }
   }
   
-  Future<Map<String, dynamic>> updateTransportStatus(int transportId, String status) async {
-    final response = await http.patch(
-      Uri.parse('$baseUrl/resources/transport/$transportId/'),
-      headers: await _getHeaders(),
-      body: json.encode({'status': status}),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to update transport status');
-    }
-  }
-  
   // ==================== STAFF MANAGEMENT ====================
   
   Future<List<dynamic>> getStaff() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/staff/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load staff');
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/staff/'),
+        headers: await _getHeaders(),
+      );
+      
+      print('Staff response status: ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is List) {
+          return data;
+        } else if (data['results'] != null) {
+          return data['results'];
+        }
+        return [];
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error loading staff: $e');
+      return [];
     }
   }
   
@@ -416,20 +316,6 @@ class ApiService {
     }
   }
   
-  Future<Map<String, dynamic>> updateStaff(int staffId, Map<String, dynamic> staffData) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/staff/$staffId/'),
-      headers: await _getHeaders(),
-      body: json.encode(staffData),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to update staff');
-    }
-  }
-  
   Future<void> toggleStaffStatus(int staffId) async {
     final response = await http.patch(
       Uri.parse('$baseUrl/staff/$staffId/toggle/'),
@@ -444,15 +330,28 @@ class ApiService {
   // ==================== ORPHANAGE MANAGEMENT ====================
   
   Future<List<dynamic>> getOrphanages() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/orphanages/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load orphanages');
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/orphanages/'),
+        headers: await _getHeaders(),
+      );
+      
+      print('Orphanages response status: ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is List) {
+          return data;
+        } else if (data['results'] != null) {
+          return data['results'];
+        }
+        return [];
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error loading orphanages: $e');
+      return [];
     }
   }
   
@@ -470,64 +369,33 @@ class ApiService {
     }
   }
   
-  Future<Map<String, dynamic>> updateOrphanage(int orphanageId, Map<String, dynamic> orphanageData) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/orphanages/$orphanageId/'),
-      headers: await _getHeaders(),
-      body: json.encode(orphanageData),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to update orphanage');
-    }
-  }
-  
   // ==================== NOTIFICATIONS ====================
   
   Future<List<dynamic>> getNotifications() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/notifications/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['results'] ?? data;
-    } else {
-      throw Exception('Failed to load notifications');
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/notifications/'),
+        headers: await _getHeaders(),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is List) {
+          return data;
+        } else if (data['results'] != null) {
+          return data['results'];
+        }
+        return [];
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error loading notifications: $e');
+      return [];
     }
   }
   
-  Future<Map<String, dynamic>> markNotificationRead(int notificationId) async {
-    final response = await http.patch(
-      Uri.parse('$baseUrl/notifications/$notificationId/read/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to mark notification as read');
-    }
-  }
-  
-  Future<int> getUnreadNotificationCount() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/notifications/unread/count/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['count'] ?? 0;
-    } else {
-      return 0;
-    }
-  }
-  
-  // ==================== DASHBOARD & ACTIVITIES ====================
+  // ==================== DASHBOARD ====================
   
   Future<Map<String, dynamic>> getDashboardStats() async {
     try {
@@ -536,80 +404,47 @@ class ApiService {
       final staff = await getStaff();
       final orphanages = await getOrphanages();
       
+      final childrenList = children is List ? children : [];
+      final staffList = staff is List ? staff : [];
+      final orphanagesList = orphanages is List ? orphanages : [];
+      
       return {
-        'total_children': children.length,
+        'total_children': childrenList.length,
         'available_beds': beds['available_beds'] ?? 0,
-        'total_staff': staff.length,
-        'active_staff': staff.where((s) => s['is_active'] == true).length,
-        'active_orphanages': orphanages.where((o) => o['is_active'] == true).length,
+        'total_staff': staffList.length,
+        'active_staff': staffList.where((s) => s['is_active'] == true).length,
+        'active_orphanages': orphanagesList.where((o) => o['is_active'] == true).length,
       };
     } catch (e) {
       print('Error getting dashboard stats: $e');
-      return {};
+      return {
+        'total_children': 0,
+        'available_beds': 0,
+        'total_staff': 0,
+        'active_staff': 0,
+        'active_orphanages': 0,
+      };
     }
   }
   
   Future<List<Map<String, dynamic>>> getRecentActivities() async {
     try {
       final children = await getChildren();
-      final recentChildren = children.take(5).map((child) => {
+      final childrenList = children is List ? children : [];
+      
+      final recentChildren = childrenList.take(5).map((child) => {
         'title': 'New Child Enrolled',
         'description': '${child['first_name']} ${child['last_name']} was enrolled',
         'type': 'enrollment',
         'time': _formatTimeAgo(child['enrollment_date']),
       }).toList();
       
-      final transport = await getTransportRequests();
-      final recentTransport = transport.take(3).map((t) => {
-        'title': 'Transport Request',
-        'description': 'Pickup from ${t['pickup_location']}',
-        'type': 'transport',
-        'time': _formatTimeAgo(t['request_date']),
-      }).toList();
-      
-      List<Map<String, dynamic>> allActivities = [];
-      allActivities.addAll(recentChildren);
-      allActivities.addAll(recentTransport);
-      
-      allActivities.sort((a, b) => b['time'].compareTo(a['time']));
-      
-      return allActivities.take(10).toList();
+      return recentChildren.take(10).toList();
     } catch (e) {
       print('Error loading activities: $e');
       return [];
     }
   }
-  
-  // ==================== REPORTS ====================
-  
-  Future<Map<String, dynamic>> generateChildReport(Map<String, dynamic> filters) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/reports/children/'),
-      headers: await _getHeaders(),
-      body: json.encode(filters),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to generate report');
-    }
-  }
-  
-  Future<Map<String, dynamic>> generateMedicalReport(int childId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/reports/medical/$childId/'),
-      headers: await _getHeaders(),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to generate medical report');
-    }
-  }
-  
-  // ==================== HELPER METHODS ====================
   
   String _formatTimeAgo(String? dateTimeString) {
     if (dateTimeString == null) return 'Recently';

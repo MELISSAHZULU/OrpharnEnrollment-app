@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from orphanages.models import Orphanage
 
 class Staff(models.Model):
     STAFF_ROLES = [
@@ -18,6 +19,7 @@ class Staff(models.Model):
     staff_id = models.CharField(max_length=20, unique=True)
     role = models.CharField(max_length=20, choices=STAFF_ROLES, default='caregiver')
     department = models.CharField(max_length=100, blank=True)
+    orphanage = models.ForeignKey(Orphanage, on_delete=models.CASCADE, null=True, blank=True, related_name='staff_members')
     hire_date = models.DateField(auto_now_add=True)
     emergency_contact = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)

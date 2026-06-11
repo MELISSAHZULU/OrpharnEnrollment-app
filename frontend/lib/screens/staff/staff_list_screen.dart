@@ -25,15 +25,16 @@ class _StaffListScreenState extends State<StaffListScreen> {
     });
     
     try {
-      final staff = await _apiService.getStaff();
+      final staffData = await _apiService.getStaff();
       setState(() {
-        _staff = staff;
+        _staff = staffData is List ? staffData : [];
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
         _error = e.toString();
         _isLoading = false;
+        _staff = [];
       });
     }
   }
@@ -59,7 +60,21 @@ class _StaffListScreenState extends State<StaffListScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text('Error: $_error'))
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error, size: 64, color: Colors.red),
+                      SizedBox(height: 16),
+                      Text('Error: $_error'),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadStaff,
+                        child: Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
               : _staff.isEmpty
                   ? Center(
                       child: Column(
@@ -70,7 +85,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                           Text('No staff members added yet'),
                           SizedBox(height: 16),
                           ElevatedButton.icon(
-                            onPressed: () => _showAddStaffDialog(),
+                            onPressed: _showAddStaffDialog,
                             icon: Icon(Icons.add),
                             label: Text('Add Staff Member'),
                           ),
@@ -87,81 +102,58 @@ class _StaffListScreenState extends State<StaffListScreen> {
                           margin: EdgeInsets.only(bottom: 12),
                           child: Padding(
                             padding: EdgeInsets.all(12),
-                            child: Column(
+                            child: Row(
                               children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 30,
-                                      backgroundColor: isActive ? Colors.green.shade100 : Colors.grey.shade300,
-                                      child: Text(
-                                        staff['name']?.substring(0, 1) ?? 'S',
-                                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: isActive ? Colors.green.shade100 : Colors.grey.shade300,
+                                  child: Text(
+                                    staff['name']?.substring(0, 1) ?? 'S',
+                                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        staff['name'] ?? 'Unknown',
+                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                       ),
-                                    ),
-                                    SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      SizedBox(height: 4),
+                                      Row(
                                         children: [
+                                          Icon(Icons.work, size: 16, color: Colors.grey),
+                                          SizedBox(width: 4),
                                           Text(
-                                            staff['name'] ?? 'Unknown',
-                                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                            staff['role'] ?? 'Staff',
+                                            style: TextStyle(color: Colors.grey[600]),
                                           ),
-                                          SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Icon(Icons.work, size: 16, color: Colors.grey),
-                                              SizedBox(width: 4),
-                                              Text(
-                                                staff['role'] ?? 'Staff',
-                                                style: TextStyle(color: Colors.grey[600]),
+                                          SizedBox(width: 12),
+                                          Container(
+                                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: isActive ? Colors.green.shade100 : Colors.red.shade100,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              isActive ? 'Active' : 'Inactive',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: isActive ? Colors.green.shade800 : Colors.red.shade800,
                                               ),
-                                              SizedBox(width: 12),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                decoration: BoxDecoration(
-                                                  color: isActive ? Colors.green.shade100 : Colors.red.shade100,
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                                child: Text(
-                                                  isActive ? 'Active' : 'Inactive',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: isActive ? Colors.green.shade800 : Colors.red.shade800,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            staff['email'] ?? 'No email',
-                                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                                            ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    PopupMenuButton(
-                                      itemBuilder: (context) => [
-                                        PopupMenuItem(
-                                          child: Text('Edit'),
-                                          value: 'edit',
-                                        ),
-                                        PopupMenuItem(
-                                          child: Text(isActive ? 'Deactivate' : 'Activate'),
-                                          value: 'toggle',
-                                        ),
-                                      ],
-                                      onSelected: (value) {
-                                        if (value == 'edit') {
-                                          _showEditStaffDialog(staff);
-                                        } else if (value == 'toggle') {
-                                          _toggleStaffStatus(staff);
-                                        }
-                                      },
-                                    ),
-                                  ],
+                                      SizedBox(height: 4),
+                                      Text(
+                                        staff['email'] ?? 'No email',
+                                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -176,38 +168,30 @@ class _StaffListScreenState extends State<StaffListScreen> {
     final nameController = TextEditingController();
     final emailController = TextEditingController();
     final roleController = TextEditingController();
-    final departmentController = TextEditingController();
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Add Staff Member'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: 'Full Name'),
-              ),
-              SizedBox(height: 12),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              SizedBox(height: 12),
-              TextField(
-                controller: roleController,
-                decoration: InputDecoration(labelText: 'Role'),
-              ),
-              SizedBox(height: 12),
-              TextField(
-                controller: departmentController,
-                decoration: InputDecoration(labelText: 'Department'),
-              ),
-            ],
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(labelText: 'Full Name'),
+            ),
+            SizedBox(height: 12),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            SizedBox(height: 12),
+            TextField(
+              controller: roleController,
+              decoration: InputDecoration(labelText: 'Role'),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -221,7 +205,6 @@ class _StaffListScreenState extends State<StaffListScreen> {
                   'name': nameController.text,
                   'email': emailController.text,
                   'role': roleController.text,
-                  'department': departmentController.text,
                 });
                 Navigator.pop(context);
                 _loadStaff();
@@ -235,56 +218,6 @@ class _StaffListScreenState extends State<StaffListScreen> {
               }
             },
             child: Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _showEditStaffDialog(dynamic staff) {
-    // Similar to add but with existing data
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit Staff'),
-        content: Text('Edit functionality coming soon'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _toggleStaffStatus(dynamic staff) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(staff['is_active'] ? 'Deactivate Staff?' : 'Activate Staff?'),
-        content: Text('Are you sure you want to ${staff['is_active'] ? 'deactivate' : 'activate'} ${staff['name']}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await _apiService.toggleStaffStatus(staff['id']);
-                Navigator.pop(context);
-                _loadStaff();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Staff status updated'), backgroundColor: Colors.green),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                );
-              }
-            },
-            child: Text('Confirm'),
           ),
         ],
       ),
