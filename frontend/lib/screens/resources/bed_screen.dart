@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/api_service.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/role_permissions.dart';
 
 class BedScreen extends StatefulWidget {
   @override
@@ -118,11 +121,47 @@ class _BedScreenState extends State<BedScreen> {
   
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final userRole = authProvider.userRole;
+    
+    // Check if user can manage beds (add/edit)
+    final canManageBeds = userRole == UserRole.superAdmin || 
+                          userRole == UserRole.orphanageDirector ||
+                          userRole == UserRole.orphanageStaff;
+    
+    // Check if user can view beds
+    final canViewBeds = userRole != UserRole.villageHead && 
+                        userRole != UserRole.donor;
+    
+    if (!canViewBeds) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Bed Management'),
+          backgroundColor: Colors.blue,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text(
+                'Access Denied',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text('You do not have permission to view bed information.'),
+            ],
+          ),
+        ),
+      );
+    }
+    
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Bed Management'),
+          title: Text(canManageBeds ? 'Bed Management' : 'Bed Availability'),
           backgroundColor: Colors.blue,
           bottom: TabBar(
             tabs: [
@@ -130,10 +169,15 @@ class _BedScreenState extends State<BedScreen> {
               Tab(icon: Icon(Icons.bar_chart), text: 'Occupancy'),
             ],
           ),
-          actions: [
-            IconButton(icon: Icon(Icons.add), onPressed: _showAddBedDialog),
-            IconButton(icon: Icon(Icons.refresh), onPressed: _loadBeds),
-          ],
+          // Only show add button for users who can manage beds
+          actions: canManageBeds
+              ? [
+                  IconButton(icon: Icon(Icons.add), onPressed: _showAddBedDialog),
+                  IconButton(icon: Icon(Icons.refresh), onPressed: _loadBeds),
+                ]
+              : [
+                  IconButton(icon: Icon(Icons.refresh), onPressed: _loadBeds),
+                ],
         ),
         body: TabBarView(
           children: [
@@ -148,12 +192,14 @@ class _BedScreenState extends State<BedScreen> {
                             Icon(Icons.bed, size: 64, color: Colors.grey),
                             SizedBox(height: 16),
                             Text('No bed spaces added yet'),
-                            SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: _showAddBedDialog,
-                              icon: Icon(Icons.add),
-                              label: Text('Add Bed Space'),
-                            ),
+                            if (canManageBeds) ...[
+                              SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: _showAddBedDialog,
+                                icon: Icon(Icons.add),
+                                label: Text('Add Bed Space'),
+                              ),
+                            ],
                           ],
                         ),
                       )
@@ -218,6 +264,15 @@ class _BedScreenState extends State<BedScreen> {
                                     '${occupancyPercentage.toStringAsFixed(1)}% occupied',
                                     style: TextStyle(fontSize: 12, color: Colors.grey),
                                   ),
+                                  // Show note for healthcare workers that they can't edit
+                                  if (!canManageBeds && userRole == UserRole.healthcareWorker)
+                                    Padding(
+                                      padding: EdgeInsets.only(top: 8),
+                                      child: Text(
+                                        'ℹ️ View only. Contact orphanage staff for bed assignments.',
+                                        style: TextStyle(fontSize: 11, color: Colors.blue),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
@@ -247,7 +302,7 @@ class _BedScreenState extends State<BedScreen> {
                             style: TextStyle(color: Colors.grey[600]),
                           ),
                           Divider(),
-                          ..._rooms.map((room) => _buildRoomOccupancyTile(room)),
+                          ..._rooms.map((room) => _buildRoomOccupancyTile(room)).toList(),
                         ],
                       ),
                     ),
@@ -274,11 +329,14 @@ class _BedScreenState extends State<BedScreen> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _showAddBedDialog,
-          child: Icon(Icons.add),
-          backgroundColor: Colors.green,
-        ),
+        // Only show FAB for users who can manage beds
+        floatingActionButton: canManageBeds
+            ? FloatingActionButton(
+                onPressed: _showAddBedDialog,
+                child: Icon(Icons.add),
+                backgroundColor: Colors.green,
+              )
+            : null,
       ),
     );
   }
@@ -317,8 +375,6 @@ class _BedScreenState extends State<BedScreen> {
             value: percentage / 100,
             backgroundColor: Colors.grey.shade200,
             color: room['color'],
-            height: 10,
-            borderRadius: BorderRadius.circular(5),
           ),
           SizedBox(height: 4),
           Text(
@@ -331,8 +387,14 @@ class _BedScreenState extends State<BedScreen> {
   }
   
   Widget _buildOverallCapacity() {
-    final totalBeds = _rooms.fold(0, (sum, room) => sum + room['total']);
-    final occupiedBeds = _rooms.fold(0, (sum, room) => sum + room['occupied']);
+    int totalBeds = 0;
+    int occupiedBeds = 0;
+    
+    for (var room in _rooms) {
+      totalBeds += room['total'] as int;
+      occupiedBeds += room['occupied'] as int;
+    }
+    
     final percentage = (occupiedBeds / totalBeds) * 100;
     
     return Column(
@@ -350,8 +412,6 @@ class _BedScreenState extends State<BedScreen> {
           value: percentage / 100,
           backgroundColor: Colors.grey.shade200,
           color: percentage > 80 ? Colors.red : Colors.green,
-          height: 12,
-          borderRadius: BorderRadius.circular(6),
         ),
         SizedBox(height: 8),
         Text(

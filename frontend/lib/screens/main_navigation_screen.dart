@@ -154,62 +154,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       );
     }
     
-    // Add Orphanage Button - Only for super admin and orphanage directors
-    if (role == UserRole.superAdmin || role == UserRole.orphanageDirector) {
-      actions.add(
-        IconButton(
-          icon: Icon(Icons.add_business),
-          onPressed: () {
-            _showAddOrphanageDialog(context);
-          },
-          tooltip: 'Add Orphanage',
-        ),
-      );
-    }
-    
-    // Add Staff Button - Only for super admin and orphanage directors
-    if (role == UserRole.superAdmin || role == UserRole.orphanageDirector) {
-      actions.add(
-        IconButton(
-          icon: Icon(Icons.person_add_alt),
-          onPressed: () {
-            _showAddStaffDialog(context);
-          },
-          tooltip: 'Add Staff',
-        ),
-      );
-    }
-    
-    // Profile Menu
+    // Profile Menu (only profile, no logout here)
     actions.add(
       PopupMenuButton<String>(
         icon: Icon(Icons.person),
         onSelected: (value) async {
           if (value == 'profile') {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
-          } else if (value == 'logout') {
-            await authProvider.logout();
-            Navigator.pushReplacementNamed(context, '/login');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
+            );
           }
         },
         itemBuilder: (context) => [
-          PopupMenuItem(
+          const PopupMenuItem(
             value: 'profile',
             child: Row(
               children: [
                 Icon(Icons.account_circle),
                 SizedBox(width: 12),
                 Text('My Profile'),
-              ],
-            ),
-          ),
-          PopupMenuItem(
-            value: 'logout',
-            child: Row(
-              children: [
-                Icon(Icons.logout, color: Colors.red),
-                SizedBox(width: 12),
-                Text('Logout', style: TextStyle(color: Colors.red)),
               ],
             ),
           ),
@@ -220,81 +184,67 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return actions;
   }
   
-  void _showAddOrphanageDialog(BuildContext context) {
-    // TODO: Implement add orphanage dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Add Orphanage feature coming soon')),
-    );
-  }
-  
-  void _showAddStaffDialog(BuildContext context) {
-    // TODO: Implement add staff dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Add Staff feature coming soon')),
-    );
-  }
-  
   List<BottomNavigationBarItem> _getNavigationItems(UserRole role) {
     switch (role) {
       case UserRole.superAdmin:
         return [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Staff'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          const BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Staff'),
+          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
       case UserRole.healthcareWorker:
         return [
-          BottomNavigationBarItem(icon: Icon(Icons.medical_services), label: 'Medical'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          const BottomNavigationBarItem(icon: Icon(Icons.medical_services), label: 'Medical'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          const BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
+          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
       case UserRole.orphanageDirector:
       case UserRole.orphanageStaff:
         return [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Staff'),
-          BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Staff'),
+          const BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
+          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
       case UserRole.socialWorker:
         return [
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Cases'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          const BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Cases'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
       case UserRole.villageHead:
         return [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Village'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Reports'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Village'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Reports'),
+          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
       case UserRole.donor:
         return [
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Sponsors'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          const BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Sponsors'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
       case UserRole.governmentOfficial:
         return [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
-          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
+          const BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
+          const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
+          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
       case UserRole.viewer:
         return [
-          BottomNavigationBarItem(icon: Icon(Icons.visibility), label: 'View'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
+          const BottomNavigationBarItem(icon: Icon(Icons.visibility), label: 'View'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          const BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
         ];
       default:
         return [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
         ];
     }
   }
@@ -324,7 +274,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
   
   Widget? _getFloatingActionButton(UserRole role, BuildContext context) {
-    // Only show FAB for roles that need quick actions
     switch (role) {
       case UserRole.healthcareWorker:
         return FloatingActionButton.extended(
