@@ -14,8 +14,7 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
   int _todayEnrollments = 0;
   int _vaccinationsDue = 0;
   bool _isLoading = true;
-  
-  final List<Map<String, dynamic>> _emergencyEnrollments = [];
+  List<dynamic> _recentEnrollments = [];
   
   @override
   void initState() {
@@ -29,17 +28,32 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
       final children = await _apiService.getChildren();
       final childrenList = children is List ? children : [];
       
+      _emergencyCases = childrenList.where((c) => c['status'] == 'EMERGENCY').length;
+      _pendingMedicalReviews = childrenList.where((c) => c['status'] == 'MEDICAL_CHECK').length;
+      
+      final today = DateTime.now().toString().substring(0, 10);
+      _todayEnrollments = childrenList.where((c) => 
+        c['enrollment_date']?.toString().contains(today) ?? false
+      ).length;
+      
+      // Safe way to get recent enrollments
+      if (childrenList.isNotEmpty) {
+        _recentEnrollments = childrenList.length > 5 
+            ? childrenList.sublist(0, 5) 
+            : List.from(childrenList);
+      } else {
+        _recentEnrollments = [];
+      }
+      
+      _vaccinationsDue = 0;
+      
+      setState(() => _isLoading = false);
+    } catch (e) {
+      print('Error loading healthcare dashboard: $e');
       setState(() {
-        _emergencyCases = childrenList.where((c) => c['status'] == 'EMERGENCY').length;
-        _pendingMedicalReviews = childrenList.where((c) => c['medical_review_needed'] == true).length;
-        _todayEnrollments = childrenList.where((c) => 
-          c['enrollment_date']?.toString().contains(DateTime.now().toString().substring(0, 10)) ?? false
-        ).length;
-        _vaccinationsDue = 15;
+        _recentEnrollments = [];
         _isLoading = false;
       });
-    } catch (e) {
-      setState(() => _isLoading = false);
     }
   }
   
@@ -47,8 +61,10 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => EmergencyEnrollmentDialog(),
-    ).then((_) => _loadDashboardData());
+      builder: (context) => EmergencyEnrollmentDialog(
+        onSuccess: () => _loadDashboardData(),
+      ),
+    );
   }
   
   @override
@@ -59,8 +75,8 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
         backgroundColor: Colors.teal,
         actions: [
           IconButton(
-            icon: Icon(Icons.medical_services),
-            onPressed: () => _showMedicalStats(),
+            icon: Icon(Icons.refresh),
+            onPressed: _loadDashboardData,
           ),
         ],
       ),
@@ -105,12 +121,11 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
               SizedBox(height: 24),
               
               // Emergency Enrollment Card
-              Card(
-                color: Colors.red.shade50,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: InkWell(
-                  onTap: _showEmergencyEnrollmentDialog,
-                  borderRadius: BorderRadius.circular(12),
+              InkWell(
+                onTap: _showEmergencyEnrollmentDialog,
+                child: Card(
+                  color: Colors.red.shade50,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Row(
@@ -170,7 +185,7 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
               
               SizedBox(height: 24),
               
-              // Recent Medical Cases
+              // Recent Medical Enrollments
               Card(
                 child: Padding(
                   padding: EdgeInsets.all(16),
@@ -182,33 +197,54 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
                           Icon(Icons.history, color: Colors.teal),
                           SizedBox(width: 8),
                           Text(
-                            'Recent Medical Cases',
+                            'Recent Enrollments',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       Divider(),
-                      _buildMedicalCaseTile(
-                        'Baby Girl',
-                        'Mother passed during childbirth',
-                        'Queen Elizabeth Hospital',
-                        'Emergency',
-                        Colors.red,
-                      ),
-                      _buildMedicalCaseTile(
-                        'John Mwale',
-                        'Premature baby needs NICU care',
-                        'Kamuzu Central Hospital',
-                        'Critical',
-                        Colors.orange,
-                      ),
-                      _buildMedicalCaseTile(
-                        'Sarah Chisale',
-                        'Severe malnutrition',
-                        'Blantyre District Hospital',
-                        'Stable',
-                        Colors.green,
-                      ),
+                      if (_isLoading)
+                        Center(child: CircularProgressIndicator())
+                      else if (_recentEnrollments.isEmpty)
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Icon(Icons.people_outline, size: 48, color: Colors.grey),
+                                SizedBox(height: 8),
+                                Text('No enrollments yet'),
+                                SizedBox(height: 8),
+                                ElevatedButton(
+                                  onPressed: _showEmergencyEnrollmentDialog,
+                                  child: Text('Enroll First Child'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        ..._recentEnrollments.map((child) => ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: child['status'] == 'EMERGENCY' 
+                                ? Colors.red.shade100 
+                                : Colors.teal.shade100,
+                            child: Icon(
+                              child['status'] == 'EMERGENCY' 
+                                  ? Icons.emergency 
+                                  : Icons.child_care,
+                              color: child['status'] == 'EMERGENCY' ? Colors.red : Colors.teal,
+                            ),
+                          ),
+                          title: Text('${child['first_name'] ?? 'Unknown'} ${child['last_name'] ?? ''}'),
+                          subtitle: Text('Age: ${child['age'] ?? '?'} | ${child['village'] ?? 'Unknown'}'),
+                          trailing: Chip(
+                            label: Text(child['status'] ?? 'PENDING'),
+                            backgroundColor: child['status'] == 'EMERGENCY' 
+                                ? Colors.red.shade100 
+                                : Colors.grey.shade200,
+                          ),
+                        )).toList(),
                     ],
                   ),
                 ),
@@ -220,7 +256,7 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showEmergencyEnrollmentDialog,
         icon: Icon(Icons.emergency),
-        label: Text('Emergency Enroll'),
+        label: Text('Emergency'),
         backgroundColor: Colors.red,
       ),
     );
@@ -246,51 +282,20 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
       ),
     );
   }
-  
-  Widget _buildMedicalCaseTile(String name, String description, String location, String status, Color color) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.2),
-        child: Icon(Icons.medical_services, color: color),
-      ),
-      title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text('$description\n$location'),
-      trailing: Chip(
-        label: Text(status, style: TextStyle(fontSize: 10)),
-        backgroundColor: color.withOpacity(0.2),
-      ),
-    );
-  }
-  
-  void _showMedicalStats() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Medical Statistics'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(title: Text('Total Children: 156'), leading: Icon(Icons.people)),
-            ListTile(title: Text('Medical Cases: 23'), leading: Icon(Icons.medical_services)),
-            ListTile(title: Text('Special Needs: 8'), leading: Icon(Icons.accessibility_new)),
-            ListTile(title: Text('Vaccinations Today: 5'), leading: Icon(Icons.vaccines)),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Close')),
-        ],
-      ),
-    );
-  }
 }
 
 // Emergency Enrollment Dialog
 class EmergencyEnrollmentDialog extends StatefulWidget {
+  final VoidCallback? onSuccess;
+  
+  const EmergencyEnrollmentDialog({super.key, this.onSuccess});
+  
   @override
   _EmergencyEnrollmentDialogState createState() => _EmergencyEnrollmentDialogState();
 }
 
 class _EmergencyEnrollmentDialogState extends State<EmergencyEnrollmentDialog> {
+  final ApiService _apiService = ApiService();
   final _formKey = GlobalKey<FormState>();
   String? _emergencyType;
   String? _babyGender;
@@ -300,6 +305,7 @@ class _EmergencyEnrollmentDialogState extends State<EmergencyEnrollmentDialog> {
   String? _medicalCondition;
   bool _needsImmediateTransport = true;
   String? _healthFacility;
+  bool _isSubmitting = false;
   
   final List<Map<String, dynamic>> _emergencyTypes = [
     {'value': 'birth_loss', 'label': 'Mother passed during childbirth', 'icon': Icons.female, 'color': Colors.pink},
@@ -446,16 +452,11 @@ class _EmergencyEnrollmentDialogState extends State<EmergencyEnrollmentDialog> {
                     SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate() || _emergencyType != null) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Emergency enrollment submitted! Ambulance notified.'), backgroundColor: Colors.green),
-                            );
-                          }
-                        },
+                        onPressed: _isSubmitting ? null : _submitEmergencyEnrollment,
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        child: Text('SUBMIT EMERGENCY'),
+                        child: _isSubmitting 
+                            ? CircularProgressIndicator() 
+                            : Text('SUBMIT EMERGENCY'),
                       ),
                     ),
                   ],
@@ -466,5 +467,55 @@ class _EmergencyEnrollmentDialogState extends State<EmergencyEnrollmentDialog> {
         ),
       ),
     );
+  }
+  
+  Future<void> _submitEmergencyEnrollment() async {
+    if (_emergencyType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select emergency type'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    
+    setState(() => _isSubmitting = true);
+    
+    try {
+      final childData = {
+        'first_name': _babyName ?? 'Baby',
+        'last_name': '',
+        'date_of_birth': _birthDate?.toIso8601String().split('T')[0],
+        'gender': _babyGender ?? 'U',
+        'village': _healthFacility ?? 'Health Facility',
+        'district': 'Unknown',
+        'emergency_type': _emergencyType,
+        'mother_name': _motherName,
+        'health_facility': _healthFacility,
+        'needs_immediate_transport': _needsImmediateTransport,
+        'medical_notes': _medicalCondition,
+        'reason_for_care': _emergencyTypes.firstWhere((t) => t['value'] == _emergencyType)['label'],
+        'status': 'EMERGENCY',
+      };
+      
+      await _apiService.enrollChild(childData);
+      
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onSuccess?.call();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Emergency enrollment submitted!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 }
