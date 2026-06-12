@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import BedSpace, TransportRequest
+from .models import Room
 
 @admin.register(BedSpace)
 class BedSpaceAdmin(admin.ModelAdmin):
@@ -17,3 +18,8 @@ class TransportRequestAdmin(admin.ModelAdmin):
     list_filter = ('status', 'request_date')
     search_fields = ('child__first_name', 'child__last_name', 'pickup_location')
     readonly_fields = ('request_date',)
+
+@admin.register(Room)
+class RoomAdmin(admin.ModelAdmin):
+    list_display = ('name', 'orphanage', 'total_beds', 'occupied_beds', 'occupancy_percentage')
+    list_filter = ('orphanage',)

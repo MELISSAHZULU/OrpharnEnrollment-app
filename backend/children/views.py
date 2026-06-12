@@ -4,8 +4,9 @@ from .serializers import ChildSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework import status
+from .models import CaseNote
+from .serializers import CaseNoteSerializer
 
 @api_view(['GET'])
 def test_connection(request):
@@ -43,3 +44,25 @@ class ChildViewSet(viewsets.ModelViewSet):
         """Special enrollment for birth-related orphan cases"""
         # Similar to above but with specific birth fields
         pass
+
+    @action(detail=True, methods=['post'])
+    def add_case_note(self, request, pk=None):
+        child = self.get_object()
+        serializer = CaseNoteSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(child=child, author=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['post'])
+    def emergency_enrollment(self, request):
+        """Special endpoint for emergency enrollment"""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            child = serializer.save(
+                reported_by=request.user,
+                reporter_role='healthcare_worker',
+                status='EMERGENCY'
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

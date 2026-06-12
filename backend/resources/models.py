@@ -66,3 +66,23 @@ class Orphanage(models.Model):
     @property
     def available_space(self):
         return self.capacity - self.current_children
+
+class Room(models.Model):
+    orphanage = models.ForeignKey('orphanages.Orphanage', on_delete=models.CASCADE, related_name='rooms')
+    name = models.CharField(max_length=100)  # Boys Dorm, Girls Dorm, etc.
+    total_beds = models.IntegerField()
+    occupied_beds = models.IntegerField(default=0)
+    color_code = models.CharField(max_length=20, default='blue')  # For UI display
+    
+    @property
+    def available_beds(self):
+        return self.total_beds - self.occupied_beds
+    
+    @property
+    def occupancy_percentage(self):
+        if self.total_beds > 0:
+            return (self.occupied_beds / self.total_beds) * 100
+        return 0
+    
+    def __str__(self):
+        return f"{self.name} - {self.orphanage.name}"

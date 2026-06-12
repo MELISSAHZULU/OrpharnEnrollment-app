@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'notifications',
     'orphanages',
     'staff',
+    'donations',   
+    'reports',
 ]
 
 MIDDLEWARE = [

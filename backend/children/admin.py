@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Child
+from .models import CaseNote
 
 @admin.register(Child)
 class ChildAdmin(admin.ModelAdmin):
@@ -25,3 +26,8 @@ class ChildAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+@admin.register(CaseNote)
+class CaseNoteAdmin(admin.ModelAdmin):
+    list_display = ('child', 'author', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('child__first_name', 'note')
