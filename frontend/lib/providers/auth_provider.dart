@@ -40,19 +40,22 @@ class AuthProvider extends ChangeNotifier {
   }
   
   Future<void> loadUserProfile() async {
-    try {
-      final userData = await _apiService.getCurrentUser();
-      _currentUser = User.fromJson(userData);
-      if (userData['role'] != null) {
-        _userRole = UserRoleExtension.fromCode(userData['role']);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_role', userData['role']);
-      }
-      notifyListeners();
-    } catch (e) {
-      print('Error loading user profile: $e');
+  try {
+    final userData = await _apiService.getCurrentUser();
+    _currentUser = User.fromJson(userData);
+    if (userData['role'] != null) {
+      _userRole = UserRoleExtension.fromCode(userData['role']);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_role', userData['role']);
     }
+    notifyListeners();
+  } catch (e) {
+    print('Error loading user profile: $e');
+    // Don't throw - just log the error
+    // Use default values
+    _currentUser = null;
   }
+}
   
   Future<bool> login(String username, String password) async {
     _isLoading = true;
