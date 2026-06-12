@@ -14,28 +14,8 @@ import 'transport/transport_request_screen.dart';
 import 'notifications/notifications_screen.dart';
 import 'healthcare/healthcare_dashboard.dart';
 import 'staff/staff_list_screen.dart';
-
-// Simple placeholder for orphanage screen
-class OrphanageListScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Orphanages'), backgroundColor: Colors.blue),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.business, size: 64, color: Colors.blue),
-            SizedBox(height: 16),
-            Text('Orphanage Management', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('Coming Soon'),
-          ],
-        ),
-      ),
-    );
-  }
-}
+import 'orphanages/orphanage_list_screen.dart';
+import 'government/government_dashboard.dart';
 
 // Simple placeholders for role-specific dashboards
 class AdminDashboard extends StatelessWidget {
@@ -234,7 +214,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           const BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
           const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
           const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-        ];
+       ];
       case UserRole.viewer:
         return [
           const BottomNavigationBarItem(icon: Icon(Icons.visibility), label: 'View'),
@@ -265,7 +245,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       case UserRole.donor:
         return [DashboardScreen(), ChildrenListScreen(), NotificationsScreen()];
       case UserRole.governmentOfficial:
-        return [DashboardScreen(), OrphanageListScreen(), DashboardScreen(), NotificationsScreen()];
+        return [GovernmentDashboard(), OrphanageListScreen(), DashboardScreen(), NotificationsScreen()];
       case UserRole.viewer:
         return [DashboardScreen(), ChildrenListScreen(), OrphanageListScreen()];
       default:

@@ -28,12 +28,11 @@ class UserProfile(models.Model):
         orphanage_name = self.orphanage.name if self.orphanage else 'No Orphanage'
         return f"{self.user.username} - {self.get_role_display()} ({orphanage_name})"
 
+# Modified signals to avoid duplicate creation
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        # Set role based on is_superuser or is_staff
-        role = 'super_admin' if instance.is_superuser else 'viewer'
-        UserProfile.objects.get_or_create(user=instance, defaults={'role': role})
+        UserProfile.objects.get_or_create(user=instance)
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):

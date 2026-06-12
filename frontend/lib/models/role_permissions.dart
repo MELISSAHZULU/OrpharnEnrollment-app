@@ -161,4 +161,8 @@ class RolePermissions {
   static bool canViewOnlyOwnOrphanage(UserRole role) {
     return role == UserRole.orphanageDirector || role == UserRole.orphanageStaff;
   }
+  
+  static bool canViewOrphanages(UserRole role) {
+    return role != UserRole.donor && role != UserRole.villageHead;
+  }
 }

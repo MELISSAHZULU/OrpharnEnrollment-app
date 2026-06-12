@@ -23,19 +23,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _orphanageController = TextEditingController();
   
-  String _selectedRole = 'orphanage_staff';
+  String _selectedRole = 'social_worker';
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   
+  // All available roles for registration
   final List<Map<String, dynamic>> _roles = [
-    {'value': 'orphanage_staff', 'label': 'Orphanage Staff', 'icon': Icons.family_restroom},
-    {'value': 'healthcare_worker', 'label': 'Healthcare Worker', 'icon': Icons.medical_services},
-    {'value': 'village_head', 'label': 'Village Head', 'icon': Icons.location_city},
+    {'value': 'orphanage_director', 'label': 'Orphanage Director', 'icon': Icons.business, 'color': Colors.blue, 'showOrphanageField': true},
+    {'value': 'orphanage_staff', 'label': 'Orphanage Staff', 'icon': Icons.people_outline, 'color': Colors.lightBlue, 'showOrphanageField': true},
+    {'value': 'social_worker', 'label': 'Social Worker', 'icon': Icons.people, 'color': Colors.green, 'showOrphanageField': false},
+    {'value': 'healthcare_worker', 'label': 'Healthcare Worker', 'icon': Icons.medical_services, 'color': Colors.teal, 'showOrphanageField': false},
+    {'value': 'village_head', 'label': 'Village Head', 'icon': Icons.location_city, 'color': Colors.orange, 'showOrphanageField': false},
+    {'value': 'donor', 'label': 'Donor / Sponsor', 'icon': Icons.favorite, 'color': Colors.pink, 'showOrphanageField': false},
+    {'value': 'government_official', 'label': 'Government Official', 'icon': Icons.account_balance, 'color': Colors.indigo, 'showOrphanageField': false},
+    {'value': 'viewer', 'label': 'Viewer (Read Only)', 'icon': Icons.visibility, 'color': Colors.grey, 'showOrphanageField': false},
   ];
   
   @override
   Widget build(BuildContext context) {
+    // Check if selected role should show orphanage field
+    final selectedRoleData = _roles.firstWhere((r) => r['value'] == _selectedRole);
+    final showOrphanageField = selectedRoleData['showOrphanageField'] as bool;
+    
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -64,10 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       SizedBox(height: 16),
                       Text(
                         'Create Account',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       Text(
                         'Join the Orphan Enrollment System',
@@ -85,9 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               controller: _firstNameController,
                               decoration: InputDecoration(
                                 labelText: 'First Name',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                               validator: (v) => v!.isEmpty ? 'Required' : null,
                             ),
@@ -98,9 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               controller: _lastNameController,
                               decoration: InputDecoration(
                                 labelText: 'Last Name',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                               validator: (v) => v!.isEmpty ? 'Required' : null,
                             ),
@@ -117,9 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         decoration: InputDecoration(
                           labelText: 'Username',
                           prefixIcon: Icon(Icons.person),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         validator: (v) => v!.isEmpty ? 'Required' : null,
                       ),
@@ -129,9 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         decoration: InputDecoration(
                           labelText: 'Email',
                           prefixIcon: Icon(Icons.email),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         validator: (v) => v!.isEmpty || !v!.contains('@') 
                             ? 'Valid email required' : null,
@@ -145,15 +144,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           prefixIcon: Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
+                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         validator: (v) => v!.length < 6 ? 'Password must be at least 6 characters' : null,
                       ),
@@ -166,22 +159,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           prefixIcon: Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                            onPressed: () {
-                              setState(() {
-                                _obscureConfirmPassword = !_obscureConfirmPassword;
-                              });
-                            },
+                            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null,
                       ),
                       SizedBox(height: 16),
                       
                       // Role Selection Section
-                      _buildSectionTitle('Role Information', Icons.work),
+                      _buildSectionTitle('Select Your Role', Icons.work),
                       SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
@@ -191,20 +178,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Column(
                           children: _roles.map((role) => RadioListTile<String>(
                             title: Text(role['label']),
+                            subtitle: _getRoleDescription(role['value']),
                             value: role['value'],
                             groupValue: _selectedRole,
                             onChanged: (value) {
                               setState(() {
                                 _selectedRole = value!;
+                                // Clear orphanage field when switching to non-orphanage role
+                                if (!showOrphanageField) {
+                                  _orphanageController.clear();
+                                }
                               });
                             },
-                            secondary: Icon(role['icon'], color: Colors.blue),
+                            secondary: Icon(role['icon'], color: role['color']),
                           )).toList(),
                         ),
                       ),
                       SizedBox(height: 16),
                       
-                      // Contact Information Section
+                      // Orphanage field - ONLY for orphanage staff and director
+                      if (showOrphanageField)
+                        Column(
+                          children: [
+                            _buildSectionTitle('Orphanage Information', Icons.business),
+                            SizedBox(height: 12),
+                            TextFormField(
+                              controller: _orphanageController,
+                              decoration: InputDecoration(
+                                labelText: 'Orphanage Name',
+                                prefixIcon: Icon(Icons.business),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              validator: showOrphanageField ? (v) => v!.isEmpty ? 'Orphanage name is required' : null : null,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Enter the name of the orphanage you work for',
+                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      
+                      // Contact Information Section (only show if not orphanage field? Always show)
+                      SizedBox(height: 16),
                       _buildSectionTitle('Contact Information', Icons.contact_phone),
                       SizedBox(height: 12),
                       TextFormField(
@@ -212,24 +228,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         decoration: InputDecoration(
                           labelText: 'Phone Number (Optional)',
                           prefixIcon: Icon(Icons.phone),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         keyboardType: TextInputType.phone,
                       ),
-                      SizedBox(height: 12),
-                      if (_selectedRole == 'orphanage_staff')
-                        TextFormField(
-                          controller: _orphanageController,
-                          decoration: InputDecoration(
-                            labelText: 'Orphanage Name',
-                            prefixIcon: Icon(Icons.business),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
+                      
                       SizedBox(height: 24),
                       
                       // Register Button
@@ -239,9 +242,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: _isLoading ? null : _register,
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
                           child: _isLoading
                               ? CircularProgressIndicator()
@@ -282,19 +283,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
         SizedBox(width: 8),
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue.shade800,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue.shade800),
         ),
       ],
     );
   }
   
+  Widget? _getRoleDescription(String role) {
+    switch(role) {
+      case 'orphanage_director':
+        return Text('Full access to manage orphanage, staff, children, and approve transport');
+      case 'orphanage_staff':
+        return Text('Can manage children, beds, and request transport');
+      case 'social_worker':
+        return Text('Manage cases, enroll children, and track reunification');
+      case 'healthcare_worker':
+        return Text('Medical records, emergency enrollment, vaccinations');
+      case 'village_head':
+        return Text('Report orphans in your village and track status');
+      case 'donor':
+        return Text('Sponsor children, view updates, and donate');
+      case 'government_official':
+        return Text('View statistics, compliance reports, and orphanages');
+      case 'viewer':
+        return Text('Read-only access to view information');
+      default:
+        return null;
+    }
+  }
+  
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
+      
+      final selectedRoleData = _roles.firstWhere((r) => r['value'] == _selectedRole);
+      final showOrphanageField = selectedRoleData['showOrphanageField'] as bool;
       
       final userData = {
         'username': _usernameController.text,
@@ -304,9 +327,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'last_name': _lastNameController.text,
         'role': _selectedRole,
         'phone_number': _phoneController.text,
-        if (_orphanageController.text.isNotEmpty) 
-          'orphanage_name': _orphanageController.text,
       };
+      
+      // Only add orphanage_name if role requires it and field is not empty
+      if (showOrphanageField && _orphanageController.text.isNotEmpty) {
+        userData['orphanage_name'] = _orphanageController.text;
+      }
       
       try {
         await _apiService.register(userData);
