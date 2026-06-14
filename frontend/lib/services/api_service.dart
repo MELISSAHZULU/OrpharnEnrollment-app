@@ -402,6 +402,22 @@ Future<void> updateRoomOccupancy(int roomId) async {
       throw Exception('Failed to toggle staff status');
     }
   }
+
+
+  // Update staff
+Future<Map<String, dynamic>> updateStaff(int staffId, Map<String, dynamic> staffData) async {
+  final response = await http.patch(
+    Uri.parse('$baseUrl/staff/$staffId/'),
+    headers: await _getHeaders(),
+    body: json.encode(staffData),
+  );
+  
+  if (response.statusCode == 200) {
+    return json.decode(response.body);
+  } else {
+    throw Exception('Failed to update staff');
+  }
+}
   
   // ==================== ORPHANAGE MANAGEMENT ====================
   
