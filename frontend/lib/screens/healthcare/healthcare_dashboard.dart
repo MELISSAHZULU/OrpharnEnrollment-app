@@ -181,9 +181,11 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
                       if (_isLoading)
                         Center(child: CircularProgressIndicator())
                       else if (_recentEnrollments.isEmpty)
-                        Center(
+                        Padding(
                           padding: EdgeInsets.symmetric(vertical: 32),
-                          child: Text('No enrollments yet'),
+                          child: Center(
+                            child: Text('No enrollments yet'),
+                         ),
                         )
                       else
                         Column(

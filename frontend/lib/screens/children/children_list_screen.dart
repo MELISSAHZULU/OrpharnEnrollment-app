@@ -28,13 +28,15 @@ class _ChildrenListScreenState extends State<ChildrenListScreen> {
     try {
       final children = await _apiService.getChildren();
       setState(() {
-        _children = children;
+        _children = children is List ? children : [];
         _isLoading = false;
       });
     } catch (e) {
+      print('Error loading children: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
+        _children = [];
       });
     }
   }
@@ -44,6 +46,7 @@ class _ChildrenListScreenState extends State<ChildrenListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Enrolled Children'),
+        backgroundColor: Colors.blue,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
@@ -54,38 +57,90 @@ class _ChildrenListScreenState extends State<ChildrenListScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text('Error: $_error'))
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error, size: 64, color: Colors.red),
+                      SizedBox(height: 16),
+                      Text('Error: $_error'),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadChildren,
+                        child: Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
               : _children.isEmpty
-                  ? Center(child: Text('No children enrolled yet'))
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.people_outline, size: 64, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text('No children enrolled yet'),
+                          SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _loadChildren,
+                            child: Text('Refresh'),
+                          ),
+                        ],
+                      ),
+                    )
                   : ListView.builder(
                       padding: EdgeInsets.all(16),
                       itemCount: _children.length,
                       itemBuilder: (context, index) {
                         final child = _children[index];
+                        
+                        // SAFE: Get first_name and last_name with null checks
+                        final firstName = child['first_name'] ?? '';
+                        final lastName = child['last_name'] ?? '';
+                        final fullName = '$firstName $lastName'.trim();
+                        
+                        // SAFE: Get initial for avatar
+                        String initial = '?';
+                        if (fullName.isNotEmpty) {
+                          initial = fullName[0].toUpperCase();
+                        } else if (firstName.isNotEmpty) {
+                          initial = firstName[0].toUpperCase();
+                        } else if (lastName.isNotEmpty) {
+                          initial = lastName[0].toUpperCase();
+                        }
+                        
+                        // SAFE: Get age and village with fallbacks
+                        final age = child['age']?.toString() ?? '?';
+                        final village = child['village'] ?? 'Unknown';
+                        
                         return Card(
                           margin: EdgeInsets.only(bottom: 12),
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundColor: Colors.blue,
                               child: Text(
-                                '${child['first_name'][0]}${child['last_name'][0]}',
+                                initial,
                                 style: TextStyle(color: Colors.white),
                               ),
                             ),
-                            title: Text('${child['first_name']} ${child['last_name']}'),
-                            subtitle: Text(
-                              'Age: ${child['age']} | ${child['village']}',
+                            title: Text(fullName.isEmpty ? 'Unnamed Child' : fullName),
+                            subtitle: Text('Age: $age | $village'),
+                            trailing: Chip(
+                              label: Text(child['status'] ?? 'PENDING'),
+                              backgroundColor: Colors.grey.shade200,
                             ),
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChildDetailScreen(
-                                    childId: child['id'],
-                                    child: child,
+                              if (child['id'] != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChildDetailScreen(
+                                      childId: child['id'],
+                                      child: child,
+                                    ),
                                   ),
-                                ),
-                              ).then((_) => _loadChildren());
+                                ).then((_) => _loadChildren());
+                              }
                             },
                           ),
                         );

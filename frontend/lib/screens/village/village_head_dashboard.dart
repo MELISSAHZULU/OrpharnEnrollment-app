@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../children/enroll_child_screen.dart';
 
 class VillageHeadDashboard extends StatefulWidget {
   @override
@@ -17,7 +18,6 @@ class _VillageHeadDashboardState extends State<VillageHeadDashboard> {
   final TextEditingController _guardianController = TextEditingController();
   
   String? _selectedGender;
-  String? _selectedStatus;
   List<Map<String, dynamic>> _myReports = [];
   bool _isLoading = true;
   bool _isSubmitting = false;
@@ -31,26 +31,34 @@ class _VillageHeadDashboardState extends State<VillageHeadDashboard> {
   Future<void> _loadReports() async {
     setState(() => _isLoading = true);
     try {
-      // Load reports from API
       final children = await _apiService.getChildren();
       final childrenList = children is List ? children : [];
+      
+      // Safely convert to list of maps
       setState(() {
-        _myReports = childrenList.take(5).map((c) => ({
-          'name': '${c['first_name']} ${c['last_name']}',
-          'status': c['status'],
+        _myReports = childrenList.map((c) => {
+          'name': '${c['first_name'] ?? ''} ${c['last_name'] ?? ''}'.trim(),
+          'status': c['status'] ?? 'PENDING',
           'date': c['enrollment_date']?.toString().split('T')[0] ?? 'Unknown',
-        })).toList();
+        }).toList();
         _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      print('Error loading reports: $e');
+      setState(() {
+        _myReports = [];
+        _isLoading = false;
+      });
     }
   }
   
   Future<void> _submitReport() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSubmitting = true);
+      
+      // Simulate API call
       await Future.delayed(Duration(seconds: 1));
+      
       setState(() => _isSubmitting = false);
       
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,8 +72,9 @@ class _VillageHeadDashboardState extends State<VillageHeadDashboard> {
       _guardianController.clear();
       setState(() {
         _selectedGender = null;
-        _selectedStatus = null;
       });
+      
+      _loadReports();
     }
   }
   
@@ -229,6 +238,11 @@ class _VillageHeadDashboardState extends State<VillageHeadDashboard> {
                             Icon(Icons.history, size: 64, color: Colors.grey),
                             SizedBox(height: 16),
                             Text('No reports submitted yet'),
+                            SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _loadReports,
+                              child: Text('Refresh'),
+                            ),
                           ],
                         ),
                       )
@@ -261,7 +275,7 @@ class _VillageHeadDashboardState extends State<VillageHeadDashboard> {
                                 backgroundColor: statusColor.withOpacity(0.2),
                                 child: Icon(statusIcon, color: statusColor),
                               ),
-                              title: Text(report['name']),
+                              title: Text(report['name'].isNotEmpty ? report['name'] : 'Unnamed Child'),
                               subtitle: Text('Reported: ${report['date']}'),
                               trailing: Chip(
                                 label: Text(report['status']),
