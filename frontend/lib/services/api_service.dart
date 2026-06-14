@@ -262,6 +262,53 @@ Future<Map<String, dynamic>> updateEnrollmentStatus(int childId, Map<String, dyn
     throw Exception('Failed to update status');
   }
 }
+
+
+// Get rooms
+Future<List<dynamic>> getRooms() async {
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/resources/rooms/'),
+      headers: await _getHeaders(),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['results'] ?? data;
+    }
+    return [];
+  } catch (e) {
+    print('Error loading rooms: $e');
+    return [];
+  }
+}
+
+// Add room
+Future<Map<String, dynamic>> addRoom(Map<String, dynamic> roomData) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/resources/rooms/'),
+    headers: await _getHeaders(),
+    body: json.encode(roomData),
+  );
+  
+  if (response.statusCode == 201) {
+    return json.decode(response.body);
+  } else {
+    throw Exception('Failed to add room');
+  }
+}
+
+// Update room occupancy
+Future<void> updateRoomOccupancy(int roomId) async {
+  final response = await http.patch(
+    Uri.parse('$baseUrl/resources/rooms/$roomId/increment_occupancy/'),
+    headers: await _getHeaders(),
+  );
+  
+  if (response.statusCode != 200) {
+    throw Exception('Failed to update room occupancy');
+  }
+}
   
   // ==================== TRANSPORT MANAGEMENT ====================
   

@@ -12,12 +12,27 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
   final ApiService _apiService = ApiService();
   List<dynamic> _pendingEnrollments = [];
   List<dynamic> _emergencyEnrollments = [];
+  List<dynamic> _approvedEnrollments = [];
+  List<dynamic> _rooms = [];
   bool _isLoading = true;
+  int _selectedTab = 0;
   
   @override
   void initState() {
     super.initState();
     _loadEnrollments();
+    _loadRooms();
+  }
+  
+  Future<void> _loadRooms() async {
+    try {
+      final rooms = await _apiService.getRooms();
+      setState(() {
+        _rooms = rooms is List ? rooms : [];
+      });
+    } catch (e) {
+      print('Error loading rooms: $e');
+    }
   }
   
   Future<void> _loadEnrollments() async {
@@ -33,6 +48,10 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
         
         _emergencyEnrollments = childrenList.where((c) => 
           c['status'] == 'EMERGENCY'
+        ).toList();
+        
+        _approvedEnrollments = childrenList.where((c) => 
+          c['status'] == 'APPROVED' || c['status'] == 'ENROLLED' || c['status'] == 'PLACED'
         ).toList();
         
         _isLoading = false;
@@ -64,10 +83,143 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
     }
   }
   
+  void _showAssignRoomDialog(dynamic child) async {
+    // Refresh rooms before showing dialog
+    await _loadRooms();
+    
+    String? selectedRoomId;
+    String? selectedBedId;
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Place ${child['first_name']} ${child['last_name']}'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Select Room/Hostel:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                if (_rooms.isEmpty)
+                  const Text('No rooms available. Please add rooms first.')
+                else
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _rooms.length,
+                      itemBuilder: (context, index) {
+                        final room = _rooms[index];
+                        final roomName = room['name'] ?? 'Unknown Room';
+                        final totalBeds = room['total_beds'] ?? 0;
+                        final occupiedBeds = room['occupied_beds'] ?? 0;
+                        final availableBeds = totalBeds - occupiedBeds;
+                        final isSelected = selectedRoomId == room['id'].toString();
+                        
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          color: isSelected ? Colors.blue.shade50 : null,
+                          child: RadioListTile<String>(
+                            title: Text(
+                              roomName,
+                              style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+                            ),
+                            subtitle: Text('Beds: $occupiedBeds/$totalBeds occupied (${availableBeds} available)'),
+                            value: room['id'].toString(),
+                            groupValue: selectedRoomId,
+                            onChanged: (value) {
+                              setDialogState(() {
+                                selectedRoomId = value;
+                                selectedBedId = null;
+                              });
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                
+                if (selectedRoomId != null) ...[
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const Text(
+                    'Select Bed Number (Optional):',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      hintText: 'Enter bed number (e.g., Bed 1, 2A, etc.)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.bed),
+                    ),
+                    onChanged: (value) => selectedBedId = value,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: selectedRoomId != null
+                  ? () async {
+                      Navigator.pop(context);
+                      setState(() => _isLoading = true);
+                      try {
+                        // Update child status to PLACED and assign room
+                        await _apiService.updateChild(child['id'], {
+                          'status': 'PLACED',
+                          'assigned_room': selectedRoomId,
+                          'assigned_bed': selectedBedId ?? '',
+                          'placement_date': DateTime.now().toIso8601String(),
+                        });
+                        
+                        // Update room occupancy
+                        await _apiService.updateRoomOccupancy(int.parse(selectedRoomId!));
+                        
+                        await _loadEnrollments();
+                        
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Child placed successfully!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                        setState(() => _isLoading = false);
+                      }
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: const Text('Place Child'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Enrollment Management'),
@@ -76,6 +228,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
             tabs: [
               Tab(icon: Icon(Icons.pending), text: 'Pending'),
               Tab(icon: Icon(Icons.emergency), text: 'Emergency'),
+              Tab(icon: Icon(Icons.check_circle), text: 'Placed'),
             ],
           ),
         ),
@@ -83,10 +236,16 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
             ? const Center(child: CircularProgressIndicator())
             : TabBarView(
                 children: [
-                  _buildEnrollmentList(_pendingEnrollments, 'Pending'),
-                  _buildEnrollmentList(_emergencyEnrollments, 'Emergency'),
+                  _buildEnrollmentList(_pendingEnrollments, 'pending'),
+                  _buildEnrollmentList(_emergencyEnrollments, 'emergency'),
+                  _buildPlacedList(_approvedEnrollments),
                 ],
               ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _showAddRoomDialog(),
+          child: const Icon(Icons.add),
+          tooltip: 'Add Room/Hostel',
+        ),
       ),
     );
   }
@@ -99,7 +258,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
           children: [
             const Icon(Icons.inbox, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
-            Text('No $type enrollments'),  // This is fine - not a const
+            Text('No $type enrollments'),
           ],
         ),
       );
@@ -126,7 +285,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: type == 'Emergency' ? Colors.red : Colors.orange,
+                      backgroundColor: type == 'emergency' ? Colors.red : Colors.orange,
                       child: Text(
                         fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
                         style: const TextStyle(color: Colors.white),
@@ -145,7 +304,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                           const SizedBox(height: 4),
                           Chip(
                             label: Text(child['status'] ?? 'UNKNOWN'),
-                            backgroundColor: type == 'Emergency' ? Colors.red.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
+                            backgroundColor: type == 'emergency' ? Colors.red.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
                           ),
                         ],
                       ),
@@ -158,16 +317,91 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    ElevatedButton(
-                      onPressed: () => _updateStatus(child, 'APPROVED'),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                      child: const Text('Approve'),
-                    ),
+                    if (type != 'emergency')
+                      ElevatedButton(
+                        onPressed: () => _updateStatus(child, 'APPROVED'),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: const Text('Approve'),
+                      ),
+                    if (type == 'emergency')
+                      ElevatedButton(
+                        onPressed: () => _showAssignRoomDialog(child),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                        child: const Text('Place Now'),
+                      ),
                     const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () => _updateStatus(child, 'REJECTED'),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text('Reject'),
+                    if (type != 'emergency')
+                      ElevatedButton(
+                        onPressed: () => _updateStatus(child, 'REJECTED'),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Reject'),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
+  Widget _buildPlacedList(List<dynamic> placements) {
+    if (placements.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.people, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text('No children placed yet'),
+          ],
+        ),
+      );
+    }
+    
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: placements.length,
+      itemBuilder: (context, index) {
+        final child = placements[index];
+        final firstName = child['first_name'] ?? '';
+        final lastName = child['last_name'] ?? '';
+        final fullName = '$firstName $lastName'.trim();
+        final age = child['age'] ?? '?';
+        final assignedRoom = child['assigned_room'];
+        final assignedBed = child['assigned_bed'];
+        
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          color: Colors.green.shade50,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const CircleAvatar(
+                      backgroundColor: Colors.green,
+                      child: Icon(Icons.check, color: Colors.white),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            fullName.isEmpty ? 'Unnamed Child' : fullName,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          Text('Age: $age'),
+                          if (assignedRoom != null)
+                            Text('Room: ${_getRoomName(int.parse(assignedRoom.toString()))}'),
+                          if (assignedBed != null && assignedBed.toString().isNotEmpty)
+                            Text('Bed: $assignedBed'),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -176,6 +410,72 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
           ),
         );
       },
+    );
+  }
+  
+  String _getRoomName(int roomId) {
+    final room = _rooms.firstWhere(
+      (r) => r['id'] == roomId,
+      orElse: () => {'name': 'Unknown'},
+    );
+    return room['name'] ?? 'Unknown Room';
+  }
+  
+  void _showAddRoomDialog() {
+    final nameController = TextEditingController();
+    final capacityController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Room/Hostel'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Room/Hostel Name',
+                hintText: 'e.g., Boys Dorm, Girls Dorm, Infants Room',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: capacityController,
+              decoration: const InputDecoration(
+                labelText: 'Capacity (Number of Beds)',
+                hintText: 'e.g., 20',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isNotEmpty && capacityController.text.isNotEmpty) {
+                await _apiService.addRoom({
+                  'name': nameController.text,
+                  'total_beds': int.parse(capacityController.text),
+                  'occupied_beds': 0,
+                });
+                Navigator.pop(context);
+                _loadRooms();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Room added!'), backgroundColor: Colors.green),
+                );
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
     );
   }
 }
