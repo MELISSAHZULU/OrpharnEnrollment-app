@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 class UnauthorizedScreen extends StatelessWidget {
+  const UnauthorizedScreen({super.key});  // Add const constructor
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Access Denied')),
-      body: Center(
+      appBar: AppBar(title: const Text('Access Denied')),
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -17,11 +19,6 @@ class UnauthorizedScreen extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Text('You don\'t have permission to view this page.'),
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Go Back'),
-            ),
           ],
         ),
       ),

@@ -5,64 +5,30 @@ import '../models/role_permissions.dart';
 import 'common/unauthorized_screen.dart';
 import 'common/profile_screen.dart';
 
-// Existing screens
+// Common Screens
 import 'dashboard/dashboard_screen.dart';
 import 'children/children_list_screen.dart';
 import 'children/enroll_child_screen.dart';
 import 'resources/bed_screen.dart';
 import 'transport/transport_request_screen.dart';
 import 'notifications/notifications_screen.dart';
-import 'healthcare/healthcare_dashboard.dart';
 import 'staff/staff_list_screen.dart';
 import 'orphanages/orphanage_list_screen.dart';
+
+// Role-Specific Screens
+import 'healthcare/healthcare_dashboard.dart';
+import 'orphanages/enrollment_management_screen.dart';
+import 'social/social_worker_dashboard.dart';
+import 'village/village_head_dashboard.dart';
+import 'donor/donor_dashboard.dart';
 import 'government/government_dashboard.dart';
-
-// Simple placeholders for role-specific dashboards
-class AdminDashboard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return DashboardScreen();
-  }
-}
-
-class DirectorDashboard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return DashboardScreen();
-  }
-}
-
-class SocialWorkerDashboard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return DashboardScreen();
-  }
-}
-
-class VillageHeadDashboard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return DashboardScreen();
-  }
-}
-
-class DonorDashboard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return DashboardScreen();
-  }
-}
-
-class GovernmentDashboard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return DashboardScreen();
-  }
-}
+import 'admin/admin_dashboard.dart';
 
 class MainNavigationScreen extends StatefulWidget {
+  const MainNavigationScreen({super.key});
+
   @override
-  _MainNavigationScreenState createState() => _MainNavigationScreenState();
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
@@ -87,7 +53,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         backgroundColor: _getRoleColor(userRole),
         actions: _getAppBarActions(userRole, authProvider, context),
       ),
-      body: screens.isNotEmpty ? screens[_selectedIndex] : UnauthorizedScreen(),
+      body: screens.isNotEmpty ? screens[_selectedIndex] : const UnauthorizedScreen(),
       bottomNavigationBar: navItems.isNotEmpty
           ? BottomNavigationBar(
               currentIndex: _selectedIndex,
@@ -96,6 +62,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               items: navItems,
               selectedItemColor: _getRoleColor(userRole),
               unselectedItemColor: Colors.grey,
+              showUnselectedLabels: true,
             )
           : null,
       floatingActionButton: _getFloatingActionButton(userRole, context),
@@ -105,45 +72,58 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   List<Widget> _getAppBarActions(UserRole role, AuthProvider authProvider, BuildContext context) {
     List<Widget> actions = [];
     
-    // Transport Request Button - Only for roles that need transport
+    // Transport Request Button
     if (role == UserRole.healthcareWorker || 
         role == UserRole.socialWorker || 
         role == UserRole.orphanageStaff ||
         role == UserRole.orphanageDirector) {
       actions.add(
         IconButton(
-          icon: Icon(Icons.directions_car),
+          icon: const Icon(Icons.directions_car),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => TransportRequestScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const TransportRequestScreen()));
           },
           tooltip: 'Request Transport',
         ),
       );
     }
     
-    // Enroll Child Button - Not for viewers or donors
+    // Enroll Child Button
     if (role != UserRole.viewer && role != UserRole.donor && role != UserRole.governmentOfficial) {
       actions.add(
         IconButton(
-          icon: Icon(Icons.person_add),
+          icon: const Icon(Icons.person_add),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => EnrollChildScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const EnrollChildScreen()));
           },
           tooltip: 'Enroll Child',
         ),
       );
     }
     
-    // Profile Menu (only profile, no logout here)
+    // Add Orphanage Button - Only for super admin and orphanage directors
+    if (role == UserRole.superAdmin || role == UserRole.orphanageDirector) {
+      actions.add(
+        IconButton(
+          icon: const Icon(Icons.add_business),
+          onPressed: () {
+            _showAddOrphanageDialog(context);
+          },
+          tooltip: 'Add Orphanage',
+        ),
+      );
+    }
+    
+    // Profile Menu
     actions.add(
       PopupMenuButton<String>(
-        icon: Icon(Icons.person),
+        icon: const Icon(Icons.person),
         onSelected: (value) async {
           if (value == 'profile') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ProfileScreen()),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+          } else if (value == 'logout') {
+            await authProvider.logout();
+            Navigator.pushReplacementNamed(context, '/login');
           }
         },
         itemBuilder: (context) => [
@@ -157,6 +137,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ],
             ),
           ),
+          const PopupMenuItem(
+            value: 'logout',
+            child: Row(
+              children: [
+                Icon(Icons.logout, color: Colors.red),
+                SizedBox(width: 12),
+                Text('Logout', style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -164,67 +154,91 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return actions;
   }
   
+  void _showAddOrphanageDialog(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Add Orphanage feature coming soon')),
+    );
+  }
+  
   List<BottomNavigationBarItem> _getNavigationItems(UserRole role) {
     switch (role) {
       case UserRole.superAdmin:
-        return [
-          const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          const BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Staff'),
-          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Staff'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
+        
       case UserRole.healthcareWorker:
-        return [
-          const BottomNavigationBarItem(icon: Icon(Icons.medical_services), label: 'Medical'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          const BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
-          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.medical_services), label: 'Medical'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
+        
       case UserRole.orphanageDirector:
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Enrollments'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Staff'),
+          BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        ];
+        
       case UserRole.orphanageStaff:
-        return [
-          const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Staff'),
-          const BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
-          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Staff'),
+          BottomNavigationBarItem(icon: Icon(Icons.bed), label: 'Beds'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
+        
       case UserRole.socialWorker:
-        return [
-          const BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Cases'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Cases'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_add), label: 'Enroll'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
+        
       case UserRole.villageHead:
-        return [
-          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Village'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Reports'),
-          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Village'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
+        
       case UserRole.donor:
-        return [
-          const BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Sponsors'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Sponsors'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
+        
       case UserRole.governmentOfficial:
-        return [
-          const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
-          const BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
-          const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
-          const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-       ];
-      case UserRole.viewer:
-        return [
-          const BottomNavigationBarItem(icon: Icon(Icons.visibility), label: 'View'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
-          const BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
+          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
         ];
+        
+      case UserRole.viewer:
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.visibility), label: 'View'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
+        ];
+        
       default:
-        return [
-          const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Children'),
         ];
     }
   }
@@ -232,24 +246,83 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   List<Widget> _getScreensForRole(UserRole role) {
     switch (role) {
       case UserRole.superAdmin:
-        return [DashboardScreen(), ChildrenListScreen(), OrphanageListScreen(), StaffListScreen(), NotificationsScreen()];
+        return [
+          DashboardScreen(),
+          ChildrenListScreen(),
+          OrphanageListScreen(),
+          StaffListScreen(),
+          NotificationsScreen(),
+        ];
+        
       case UserRole.healthcareWorker:
-        return [HealthcareDashboard(), ChildrenListScreen(), BedScreen(), NotificationsScreen()];
+        return [
+          HealthcareDashboard(),
+          ChildrenListScreen(),
+          BedScreen(),
+          NotificationsScreen(),
+        ];
+        
       case UserRole.orphanageDirector:
+        return [
+          DashboardScreen(),
+          ChildrenListScreen(),
+          EnrollmentManagementScreen(),
+          StaffListScreen(),
+          BedScreen(),
+          NotificationsScreen(),
+        ];
+        
       case UserRole.orphanageStaff:
-        return [DashboardScreen(), ChildrenListScreen(), StaffListScreen(), BedScreen(), NotificationsScreen()];
+        return [
+          DashboardScreen(),
+          ChildrenListScreen(),
+          StaffListScreen(),
+          BedScreen(),
+          NotificationsScreen(),
+        ];
+        
       case UserRole.socialWorker:
-        return [DashboardScreen(), ChildrenListScreen(), NotificationsScreen()];
+        return [
+          SocialWorkerDashboard(),
+          ChildrenListScreen(),
+          EnrollChildScreen(),
+          NotificationsScreen(),
+        ];
+        
       case UserRole.villageHead:
-        return [DashboardScreen(), ChildrenListScreen(), NotificationsScreen()];
+        return [
+          VillageHeadDashboard(),
+          ChildrenListScreen(),
+          NotificationsScreen(),
+        ];
+        
       case UserRole.donor:
-        return [DashboardScreen(), ChildrenListScreen(), NotificationsScreen()];
+        return [
+          DonorDashboard(),
+          ChildrenListScreen(),
+          NotificationsScreen(),
+        ];
+        
       case UserRole.governmentOfficial:
-        return [GovernmentDashboard(), OrphanageListScreen(), DashboardScreen(), NotificationsScreen()];
+        return [
+          GovernmentDashboard(),
+          OrphanageListScreen(),
+          DashboardScreen(),
+          NotificationsScreen(),
+        ];
+        
       case UserRole.viewer:
-        return [DashboardScreen(), ChildrenListScreen(), OrphanageListScreen()];
+        return [
+          DashboardScreen(),
+          ChildrenListScreen(),
+          OrphanageListScreen(),
+        ];
+        
       default:
-        return [DashboardScreen(), ChildrenListScreen()];
+        return [
+          DashboardScreen(),
+          ChildrenListScreen(),
+        ];
     }
   }
   
@@ -258,31 +331,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       case UserRole.healthcareWorker:
         return FloatingActionButton.extended(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => EnrollChildScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const EnrollChildScreen()));
           },
-          icon: Icon(Icons.emergency),
-          label: Text('Emergency'),
+          icon: const Icon(Icons.emergency),
+          label: const Text('Emergency'),
           backgroundColor: Colors.red,
         );
+        
       case UserRole.orphanageDirector:
       case UserRole.orphanageStaff:
         return FloatingActionButton.extended(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => EnrollChildScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const EnrollChildScreen()));
           },
-          icon: Icon(Icons.add),
-          label: Text('Enroll'),
+          icon: const Icon(Icons.add),
+          label: const Text('Enroll'),
           backgroundColor: Colors.green,
         );
+        
       case UserRole.socialWorker:
         return FloatingActionButton.extended(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => EnrollChildScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const EnrollChildScreen()));
           },
-          icon: Icon(Icons.person_add),
-          label: Text('New Case'),
+          icon: const Icon(Icons.person_add),
+          label: const Text('New Case'),
           backgroundColor: Colors.blue,
         );
+        
       default:
         return null;
     }

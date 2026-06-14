@@ -166,32 +166,37 @@ class ApiService {
   }
   
   Future<Map<String, dynamic>> enrollChild(Map<String, dynamic> childData) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/children/'),
-      headers: await _getHeaders(),
-      body: json.encode(childData),
-    );
-    
-    if (response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to enroll child');
-    }
-  }
+   final response = await http.post(
+     Uri.parse('$baseUrl/children/'),
+     headers: await _getHeaders(),
+     body: json.encode(childData),
+   );
+  
+   if (response.statusCode == 201) {
+     return json.decode(response.body);
+   } else {
+     print('Enrollment error: ${response.body}');
+     throw Exception('Failed to enroll child');
+   }
+  } 
   
   Future<Map<String, dynamic>> updateChild(int childId, Map<String, dynamic> childData) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/children/$childId/'),
-      headers: await _getHeaders(),
-      body: json.encode(childData),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to update child');
-    }
-  }
+   final response = await http.patch(  // Change from put to patch
+     Uri.parse('$baseUrl/children/$childId/'),
+     headers: await _getHeaders(),
+     body: json.encode(childData),
+   );
+  
+   print('Update child response status: ${response.statusCode}');
+   print('Update child response body: ${response.body}');
+  
+   if (response.statusCode == 200) {
+     return json.decode(response.body);
+   }  else {
+      throw Exception('Failed to update child: ${response.body}');
+   }
+ }
+
   
   // ==================== BED MANAGEMENT ====================
   
@@ -231,6 +236,30 @@ Future<Map<String, dynamic>> getBedAvailability() async {
   } catch (e) {
     print('Error loading bed data: $e');
     return {'available_beds': 0, 'results': []};
+  }
+}
+
+
+// Add this helper method
+void _debugPrintResponse(String tag, http.Response response) {
+  print('=== $tag ===');
+  print('Status: ${response.statusCode}');
+  print('Body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+  print('==========');
+}
+//enrollment screen status
+
+Future<Map<String, dynamic>> updateEnrollmentStatus(int childId, Map<String, dynamic> statusData) async {
+  final response = await http.patch(
+    Uri.parse('$baseUrl/children/$childId/'),
+    headers: await _getHeaders(),
+    body: json.encode(statusData),
+  );
+  
+  if (response.statusCode == 200) {
+    return json.decode(response.body);
+  } else {
+    throw Exception('Failed to update status');
   }
 }
   

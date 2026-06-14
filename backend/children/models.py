@@ -10,17 +10,16 @@ class Child(models.Model):
     ]
     
     STATUS_CHOICES = [
-        ('PENDING', 'Pending Review'),
-        ('ENROLLED', 'Enrolled'),
-        ('MEDICAL_CHECK', 'Medical Check'),
-        ('AWAITING_BED', 'Awaiting Bed'),
-        ('PLACED', 'Placed'),
-        ('IN_CARE', 'In Care'),
-        ('TRANSFERRED', 'Transferred'),
-        ('REUNITED', 'Reunited with Family'),
-        ('EMERGENCY', 'Emergency'),
-        ('DECEASED', 'Deceased'),
-    ]
+    ('INITIATED', 'Initiated'),
+    ('PENDING', 'Pending Review'),
+    ('EMERGENCY', 'Emergency'),
+    ('APPROVED', 'Approved'),
+    ('REJECTED', 'Rejected'),
+    ('ENROLLED', 'Enrolled'),
+    ('PLACED', 'Placed'),
+    ('TRANSFERRED', 'Transferred'),
+    ('REUNITED', 'Reunited'),
+]
     
     EMERGENCY_TYPE_CHOICES = [
         ('birth_loss', 'Mother passed during childbirth'),
@@ -28,6 +27,54 @@ class Child(models.Model):
         ('medical_emergency', 'Critical medical condition'),
         ('abuse', 'Child abuse/neglect case'),
     ]
+
+    ENROLLMENT_STATUS_CHOICES = [
+        ('INITIATED', 'Initiated - Pending Screening'),
+        ('SCREENING', 'Under Social Worker Screening'),
+        ('VERIFIED', 'Verified - Pending Approval'),
+        ('APPROVED', 'Approved - Ready for Placement'),
+        ('ENROLLED', 'Enrolled - Placement in Progress'),
+        ('PLACED', 'Placed - In Care'),
+        ('REJECTED', 'Rejected - Does Not Meet Criteria'),
+        ('PENDING_INFO', 'Pending More Information'),
+    ]
+    
+    enrollment_status = models.CharField(
+        max_length=20, 
+        choices=ENROLLMENT_STATUS_CHOICES, 
+        default='INITIATED'
+    )
+    
+    # Approval Tracking
+    initiated_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, 
+        related_name='initiated_enrollments', blank=True
+    )
+    screened_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, 
+        related_name='screened_enrollments', blank=True
+    )
+    verified_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, 
+        related_name='verified_enrollments', blank=True
+    )
+    approved_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, 
+        related_name='approved_enrollments', blank=True
+    )
+    
+    # Criteria Tracking
+    criteria_met = models.JSONField(default=list)  # List of criteria IDs met
+    verification_notes = models.TextField(blank=True)
+    rejection_reason = models.TextField(blank=True)
+    
+    # Documents
+    documents = models.JSONField(default=list)  # List of uploaded document URLs
+    
+    screening_date = models.DateTimeField(null=True, blank=True)
+    approval_date = models.DateTimeField(null=True, blank=True)
+    placement_date = models.DateTimeField(null=True, blank=True)
+
     
     # Personal Information
     first_name = models.CharField(max_length=100, blank=True)
@@ -110,3 +157,11 @@ class Vaccination(models.Model):
     
     def __str__(self):
         return f"{self.vaccine_name} for {self.child.first_name} - {self.date_given}"
+
+current_orphanage = models.ForeignKey(
+    'orphanages.Orphanage', 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='children'
+)    

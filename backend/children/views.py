@@ -16,31 +16,13 @@ class ChildViewSet(viewsets.ModelViewSet):
         user = self.request.user
         role = user.profile.role if hasattr(user, 'profile') else 'viewer'
         
-        # Super admin and government see all
-        if role in ['super_admin', 'government_official']:
-            return Child.objects.all()
-        # Orphanage staff/director see children in their orphanage only
-        elif role in ['orphanage_director', 'orphanage_staff'] and hasattr(user, 'profile') and user.profile.orphanage:
-            return Child.objects.filter(current_orphanage=user.profile.orphanage)
-        # Healthcare workers see all (for medical purposes)
-        elif role == 'healthcare_worker':
-            return Child.objects.all()
-        # Social workers see children they are assigned to
-        elif role == 'social_worker':
-            return Child.objects.filter(reported_by=user)
-        # Village head - simplified, return all for now (or empty)
-        elif role == 'village_head':
-            # Remove the village filter that was causing the error
-            return Child.objects.all()
-        # Others see limited data
-        else:
-            return Child.objects.none()
+        # Allow all roles to see all children for testing
+        return Child.objects.all()
     
     def perform_create(self, serializer):
         user = self.request.user
         role = user.profile.role if hasattr(user, 'profile') else 'viewer'
         
-        # Set current orphanage if user belongs to one
         orphanage = None
         if hasattr(user, 'profile') and user.profile.orphanage:
             orphanage = user.profile.orphanage
@@ -52,19 +34,53 @@ class ChildViewSet(viewsets.ModelViewSet):
             status='PENDING'
         )
     
+    def update(self, request, *args, **kwargs):
+        """Override update to handle partial updates properly"""
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        
+        # Only update fields that are provided
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        
+        # Save the update
+        self.perform_update(serializer)
+        
+        return Response(serializer.data)
+    
+    def partial_update(self, request, *args, **kwargs):
+        """Handle PATCH requests for status updates"""
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+    
     @action(detail=True, methods=['post'], url_path='request_transport')
     def request_transport(self, request, pk=None):
         child = self.get_object()
-        serializer = TransportRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            transport = serializer.save(
-                child=child,
-                requested_by=request.user,
-                status='PENDING'
+        
+        pickup_location = request.data.get('pickup_location')
+        destination = request.data.get('destination')
+        notes = request.data.get('notes', '')
+        transport_type = request.data.get('transport_type', 'regular')
+        
+        if not pickup_location or not destination:
+            return Response(
+                {'error': 'Pickup location and destination are required'},
+                status=status.HTTP_400_BAD_REQUEST
             )
-            return Response({
-                'success': True,
-                'message': 'Transport request submitted successfully',
-                'transport': serializer.data
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        transport = TransportRequest.objects.create(
+            child=child,
+            requested_by=request.user,
+            pickup_location=pickup_location,
+            destination=destination,
+            notes=notes,
+            transport_type=transport_type,
+            status='PENDING'
+        )
+        
+        return Response({
+            'success': True,
+            'message': 'Transport request submitted successfully',
+            'transport_id': transport.id,
+            'status': transport.status
+        }, status=status.HTTP_201_CREATED)
