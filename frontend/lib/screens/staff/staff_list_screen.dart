@@ -174,7 +174,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
               child: const Text('Add Staff'),
             ),
           ],
@@ -275,6 +275,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                   );
                 }
               },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
               child: const Text('Save Changes'),
             ),
           ],
@@ -356,15 +357,19 @@ class _StaffListScreenState extends State<StaffListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Staff Management'),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF4C1D95),
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF4C1D95)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: Color(0xFF7C3AED)),
             onPressed: _showAddStaffDialog,
             tooltip: 'Add Staff',
           ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Color(0xFF7C3AED)),
             onPressed: _loadStaff,
             tooltip: 'Refresh',
           ),
@@ -372,6 +377,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _refreshStaff,
+        color: const Color(0xFF7C3AED),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _error != null
@@ -385,6 +391,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: _loadStaff,
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
                           child: const Text('Retry'),
                         ),
                       ],
@@ -403,6 +410,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                               onPressed: _showAddStaffDialog,
                               icon: const Icon(Icons.add),
                               label: const Text('Add Staff Member'),
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
                             ),
                           ],
                         ),
@@ -430,13 +438,15 @@ class _StaffListScreenState extends State<StaffListScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 30,
-                                    backgroundColor: isActive ? Colors.green.shade100 : Colors.grey.shade300,
+                                    backgroundColor: isActive 
+                                        ? const Color(0xFF7C3AED).withOpacity(0.2)
+                                        : Colors.grey.shade300,
                                     child: Text(
                                       name.isNotEmpty ? name[0].toUpperCase() : 'S',
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: isActive ? Colors.green.shade800 : Colors.grey.shade600,
+                                        color: isActive ? const Color(0xFF7C3AED) : Colors.grey.shade600,
                                       ),
                                     ),
                                   ),
@@ -450,6 +460,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
+                                            color: Color(0xFF1F2937),
                                           ),
                                         ),
                                         const SizedBox(height: 4),
@@ -511,6 +522,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                                     ),
                                   ),
                                   PopupMenuButton<String>(
+                                    iconColor: const Color(0xFF7C3AED),
                                     onSelected: (value) {
                                       if (value == 'edit') {
                                         _showEditDialog(staff);
@@ -525,7 +537,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                                         value: 'edit',
                                         child: Row(
                                           children: [
-                                            Icon(Icons.edit, size: 18),
+                                            Icon(Icons.edit, size: 18, color: Color(0xFF7C3AED)),
                                             SizedBox(width: 8),
                                             Text('Edit'),
                                           ],

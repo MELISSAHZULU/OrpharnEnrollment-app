@@ -3,8 +3,10 @@ import '../../services/api_service.dart';
 import '../children/enroll_child_screen.dart';
 
 class HealthcareDashboard extends StatefulWidget {
+  const HealthcareDashboard({super.key});
+
   @override
-  _HealthcareDashboardState createState() => _HealthcareDashboardState();
+  State<HealthcareDashboard> createState() => _HealthcareDashboardState();
 }
 
 class _HealthcareDashboardState extends State<HealthcareDashboard> {
@@ -35,7 +37,6 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
         c['enrollment_date']?.toString().contains(today) ?? false
       ).length;
       
-      // Safe way - just assign the list directly, no sublist
       _recentEnrollments = List.from(childrenList);
       
       setState(() => _isLoading = false);
@@ -49,94 +50,78 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
   }
   
   void _showEmergencyEnrollmentDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Emergency Enrollment'),
-        content: Text('This feature allows you to enroll a child in emergency situation.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => EnrollChildScreen()),
-              ).then((_) => _loadDashboardData());
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('Continue'),
-          ),
-        ],
-      ),
-    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const EnrollChildScreen()),
+    ).then((_) => _loadDashboardData());
   }
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Healthcare Portal'),
-        backgroundColor: Colors.teal,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadDashboardData,
-          ),
-        ],
+        title: const Text('Healthcare Portal'),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF4C1D95),
+        elevation: 0,
+        centerTitle: true,
       ),
       body: RefreshIndicator(
         onRefresh: _loadDashboardData,
         child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Welcome Card
-              Card(
-                color: Colors.teal.shade50,
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Icon(Icons.medical_services, size: 40, color: Colors.teal),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Healthcare Worker',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              'Enroll orphans directly from health facilities',
-                              style: TextStyle(color: Colors.teal.shade700),
-                            ),
-                          ],
-                        ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF7C3AED).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7C3AED),
+                        shape: BoxShape.circle,
                       ),
-                    ],
-                  ),
+                      child: const Icon(Icons.medical_services, size: 24, color: Colors.white),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Healthcare Worker',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                          ),
+                          Text(
+                            'Enroll orphans directly from health facilities',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               
               // Emergency Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _showEmergencyEnrollmentDialog,
-                  icon: Icon(Icons.emergency),
-                  label: Text('EMERGENCY ENROLLMENT'),
+                  icon: const Icon(Icons.emergency),
+                  label: const Text('EMERGENCY ENROLLMENT'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -144,68 +129,76 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
                 ),
               ),
               
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               
-              // Stats
+              // Stats Row
               if (!_isLoading)
                 Row(
                   children: [
                     Expanded(
-                      child: _buildStatCard('Emergency', '$_emergencyCases', Colors.red),
+                      child: _buildStatCard('Emergency', '$_emergencyCases', Icons.emergency, Colors.red),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: _buildStatCard('Medical Review', '$_pendingMedicalReviews', Colors.orange),
+                      child: _buildStatCard('Medical Review', '$_pendingMedicalReviews', Icons.medical_information, const Color(0xFF7C3AED)),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: _buildStatCard('Today', '$_todayEnrollments', Colors.green),
+                      child: _buildStatCard('Today', '$_todayEnrollments', Icons.today, const Color(0xFF10B981)),
                     ),
                   ],
                 ),
               
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               
               // Recent Enrollments
-              Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Recent Enrollments',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Recent Enrollments',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                    ),
+                    const Divider(),
+                    if (_isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else if (_recentEnrollments.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 32),
+                        child: Center(child: Text('No enrollments yet')),
+                      )
+                    else
+                      Column(
+                        children: _recentEnrollments.take(5).map((child) {
+                          final name = '${child['first_name'] ?? ''} ${child['last_name'] ?? ''}'.trim();
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: const Color(0xFF7C3AED).withOpacity(0.2),
+                              child: Icon(Icons.child_care, color: const Color(0xFF7C3AED)),
+                            ),
+                            title: Text(name.isEmpty ? 'Unnamed' : name, style: const TextStyle(color: Color(0xFF1F2937))),
+                            subtitle: Text('Age: ${child['age'] ?? '?'} | ${child['village'] ?? 'Unknown'}'),
+                            trailing: Chip(
+                              label: Text(child['status'] ?? 'PENDING'),
+                              backgroundColor: Colors.grey.shade200,
+                            ),
+                          );
+                        }).toList(),
                       ),
-                      Divider(),
-                      if (_isLoading)
-                        Center(child: CircularProgressIndicator())
-                      else if (_recentEnrollments.isEmpty)
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 32),
-                          child: Center(
-                            child: Text('No enrollments yet'),
-                         ),
-                        )
-                      else
-                        Column(
-                          children: _recentEnrollments.take(5).map((child) {
-                            final name = '${child['first_name'] ?? ''} ${child['last_name'] ?? ''}'.trim();
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.teal.shade100,
-                                child: Icon(Icons.child_care, color: Colors.teal),
-                              ),
-                              title: Text(name.isEmpty ? 'Unnamed' : name),
-                              subtitle: Text('Age: ${child['age'] ?? '?'} | ${child['village'] ?? 'Unknown'}'),
-                              trailing: Chip(
-                                label: Text(child['status'] ?? 'PENDING'),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -213,33 +206,37 @@ class _HealthcareDashboardState extends State<HealthcareDashboard> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => EnrollChildScreen()),
-          ).then((_) => _loadDashboardData());
-        },
-        child: Icon(Icons.add),
-        backgroundColor: Colors.green,
+        onPressed: _showEmergencyEnrollmentDialog,
+        child: const Icon(Icons.add),
+        backgroundColor: const Color(0xFF7C3AED),
       ),
     );
   }
   
-  Widget _buildStatCard(String title, String value, Color color) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: color),
-            ),
-            SizedBox(height: 4),
-            Text(title, style: TextStyle(color: Colors.grey)),
-          ],
-        ),
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 24, color: color),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
+          ),
+          Text(title, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+        ],
       ),
     );
   }
