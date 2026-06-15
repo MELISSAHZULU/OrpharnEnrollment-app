@@ -23,6 +23,7 @@ import 'village/village_head_dashboard.dart';
 import 'donor/donor_dashboard.dart';
 import 'government/government_dashboard.dart';
 import 'admin/admin_dashboard.dart';
+import 'government/statistics_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -221,12 +222,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ];
         
       case UserRole.governmentOfficial:
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
-          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-        ];
+        return const [];
         
       case UserRole.viewer:
         return const [
@@ -305,11 +301,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         
       case UserRole.governmentOfficial:
         return [
-          GovernmentDashboard(),
-          OrphanageListScreen(),
-          DashboardScreen(),
-          NotificationsScreen(),
-        ];
+          GovernmentDashboard()];
         
       case UserRole.viewer:
         return [

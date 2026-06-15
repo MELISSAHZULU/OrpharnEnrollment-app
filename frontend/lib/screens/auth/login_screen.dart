@@ -5,8 +5,10 @@ import '../main_navigation_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});  // Add this const constructor
+
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -29,20 +31,20 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24.0),
             child: Card(
               elevation: 8,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Padding(
-                padding: EdgeInsets.all(32.0),
+                padding: const EdgeInsets.all(32.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.family_restroom, size: 80, color: Colors.blue),
-                    SizedBox(height: 16),
-                    Text(
+                    const Icon(Icons.family_restroom, size: 80, color: Colors.blue),
+                    const SizedBox(height: 16),
+                    const Text(
                       'Orphan Enrollment System',
                       style: TextStyle(
                         fontSize: 24,
@@ -50,42 +52,40 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       'Malawi',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      style: TextStyle(color: Colors.grey[600]),
                     ),
-                    SizedBox(height: 32),
+                    const SizedBox(height: 32),
                     if (authProvider.errorMessage != null)
                       Container(
-                        padding: EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.red.shade50,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           authProvider.errorMessage!,
-                          style: TextStyle(color: Colors.red),
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _usernameController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Username',
                         prefixIcon: Icon(Icons.person),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        border: OutlineInputBorder(),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        prefixIcon: Icon(Icons.lock),
+                        prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
                           icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
                           onPressed: () {
@@ -94,12 +94,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             });
                           },
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -113,37 +111,37 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (success && mounted) {
                                   Navigator.pushReplacement(
                                     context,
-                                    MaterialPageRoute(builder: (context) => MainNavigationScreen()),
+                                    MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
                                   );
                                 }
                               },
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         child: authProvider.isLoading
-                            ? CircularProgressIndicator()
-                            : Text('Login', style: TextStyle(fontSize: 16)),
+                            ? const CircularProgressIndicator()
+                            : const Text('Login', style: TextStyle(fontSize: 16)),
                       ),
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("Don't have an account?"),
+                        const Text("Don't have an account?"),
                         TextButton(
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => RegisterScreen()),
-                      );
-                   },
-                   child: Text('Register Here'),
-                 ),
-               ],
-             ),
+                              MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                            );
+                          },
+                          child: const Text('Register Here'),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

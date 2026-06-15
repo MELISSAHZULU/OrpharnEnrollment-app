@@ -5,8 +5,10 @@ import '../../providers/auth_provider.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
@@ -57,22 +59,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24.0),
             child: Card(
               elevation: 8,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Padding(
-                padding: EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(24.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.person_add, size: 60, color: Colors.blue),
-                      SizedBox(height: 16),
-                      Text(
+                      const Icon(Icons.person_add, size: 60, color: Colors.blue),
+                      const SizedBox(height: 16),
+                      const Text(
                         'Create Account',
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
@@ -80,138 +82,149 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         'Join the Orphan Enrollment System',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       
                       // Personal Information Section
                       _buildSectionTitle('Personal Information', Icons.person),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
                             child: TextFormField(
                               controller: _firstNameController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'First Name',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                border: OutlineInputBorder(),
                               ),
                               validator: (v) => v!.isEmpty ? 'Required' : null,
                             ),
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: TextFormField(
                               controller: _lastNameController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Last Name',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                border: OutlineInputBorder(),
                               ),
                               validator: (v) => v!.isEmpty ? 'Required' : null,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       
                       // Account Information Section
                       _buildSectionTitle('Account Information', Icons.account_circle),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _usernameController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Username',
                           prefixIcon: Icon(Icons.person),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          border: OutlineInputBorder(),
                         ),
                         validator: (v) => v!.isEmpty ? 'Required' : null,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _emailController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Email',
                           prefixIcon: Icon(Icons.email),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          border: OutlineInputBorder(),
                         ),
                         validator: (v) => v!.isEmpty || !v!.contains('@') 
                             ? 'Valid email required' : null,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: Icon(Icons.lock),
+                          prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                           ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          border: const OutlineInputBorder(),
                         ),
                         validator: (v) => v!.length < 6 ? 'Password must be at least 6 characters' : null,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
                         decoration: InputDecoration(
                           labelText: 'Confirm Password',
-                          prefixIcon: Icon(Icons.lock_outline),
+                          prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
                             onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                           ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          border: const OutlineInputBorder(),
                         ),
                         validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       
-                      // Role Selection Section
+                      // Role Selection Section - Dropdown
                       _buildSectionTitle('Select Your Role', Icons.work),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade300),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Column(
-                          children: _roles.map((role) => RadioListTile<String>(
-                            title: Text(role['label']),
-                            subtitle: _getRoleDescription(role['value']),
-                            value: role['value'],
-                            groupValue: _selectedRole,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedRole = value!;
-                                // Clear orphanage field when switching to non-orphanage role
-                                if (!showOrphanageField) {
-                                  _orphanageController.clear();
-                                }
-                              });
-                            },
-                            secondary: Icon(role['icon'], color: role['color']),
-                          )).toList(),
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedRole,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                          items: _roles.map((role) {
+                            return DropdownMenuItem<String>(
+                              value: role['value'],
+                              child: Row(
+                                children: [
+                                  Icon(role['icon'], color: role['color'], size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(role['label']),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedRole = value!;
+                              // Clear orphanage field when switching to non-orphanage role
+                              if (!showOrphanageField) {
+                                _orphanageController.clear();
+                              }
+                            });
+                          },
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       
                       // Orphanage field - ONLY for orphanage staff and director
                       if (showOrphanageField)
                         Column(
                           children: [
                             _buildSectionTitle('Orphanage Information', Icons.business),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             TextFormField(
                               controller: _orphanageController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Orphanage Name',
                                 prefixIcon: Icon(Icons.business),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                border: OutlineInputBorder(),
                               ),
-                              validator: showOrphanageField ? (v) => v!.isEmpty ? 'Orphanage name is required' : null : null,
+                              validator: (v) => v!.isEmpty ? 'Orphanage name is required' : null,
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
                               'Enter the name of the orphanage you work for',
                               style: TextStyle(fontSize: 11, color: Colors.grey[600]),
@@ -219,21 +232,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ],
                         ),
                       
-                      // Contact Information Section (only show if not orphanage field? Always show)
-                      SizedBox(height: 16),
+                      // Contact Information Section
+                      const SizedBox(height: 16),
                       _buildSectionTitle('Contact Information', Icons.contact_phone),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _phoneController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Phone Number (Optional)',
                           prefixIcon: Icon(Icons.phone),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.phone,
                       ),
                       
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       
                       // Register Button
                       SizedBox(
@@ -241,27 +254,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _register,
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                           child: _isLoading
-                              ? CircularProgressIndicator()
-                              : Text('Register', style: TextStyle(fontSize: 16)),
+                              ? const CircularProgressIndicator()
+                              : const Text('Register', style: TextStyle(fontSize: 16)),
                         ),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('Already have an account?'),
+                          const Text('Already have an account?'),
                           TextButton(
                             onPressed: () {
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => LoginScreen()),
+                                MaterialPageRoute(builder: (context) => const LoginScreen()),
                               );
                             },
-                            child: Text('Login Here'),
+                            child: const Text('Login Here'),
                           ),
                         ],
                       ),
@@ -280,36 +295,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Row(
       children: [
         Icon(icon, size: 20, color: Colors.blue),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text(
           title,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue.shade800),
         ),
       ],
     );
-  }
-  
-  Widget? _getRoleDescription(String role) {
-    switch(role) {
-      case 'orphanage_director':
-        return Text('Full access to manage orphanage, staff, children, and approve transport');
-      case 'orphanage_staff':
-        return Text('Can manage children, beds, and request transport');
-      case 'social_worker':
-        return Text('Manage cases, enroll children, and track reunification');
-      case 'healthcare_worker':
-        return Text('Medical records, emergency enrollment, vaccinations');
-      case 'village_head':
-        return Text('Report orphans in your village and track status');
-      case 'donor':
-        return Text('Sponsor children, view updates, and donate');
-      case 'government_official':
-        return Text('View statistics, compliance reports, and orphanages');
-      case 'viewer':
-        return Text('Read-only access to view information');
-      default:
-        return null;
-    }
   }
   
   Future<void> _register() async {
@@ -339,7 +331,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Registration successful! Please login.'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 3),
@@ -348,7 +340,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         }
       } catch (e) {
