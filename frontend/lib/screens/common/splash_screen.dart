@@ -4,8 +4,10 @@ import '../auth/login_screen.dart';
 import '../main_navigation_screen.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
@@ -16,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
   
   Future<void> _navigateToNext() async {
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
     
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
@@ -26,8 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => token != null && token.isNotEmpty 
-              ? MainNavigationScreen() 
-              : LoginScreen(),
+              ? const MainNavigationScreen() 
+              : const LoginScreen(),
         ),
       );
     }
@@ -37,28 +39,49 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.blue.shade900, Colors.blue.shade400],
+            colors: [Color(0xFF7C3AED), Color(0xFFC084FC)],
           ),
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.family_restroom, size: 100, color: Colors.white),
-              SizedBox(height: 24),
-              Text(
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.family_restroom,
+                  size: 60,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
                 'Orphan Enrollment\nSystem',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-              SizedBox(height: 16),
-              Text('Malawi', style: TextStyle(fontSize: 18, color: Colors.white70)),
-              SizedBox(height: 48),
-              CircularProgressIndicator(color: Colors.white),
+              const SizedBox(height: 8),
+              const Text(
+                'Malawi',
+                style: TextStyle(fontSize: 16, color: Colors.white70),
+              ),
+              const SizedBox(height: 48),
+              const CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
             ],
           ),
         ),

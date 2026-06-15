@@ -23,7 +23,6 @@ import 'village/village_head_dashboard.dart';
 import 'donor/donor_dashboard.dart';
 import 'government/government_dashboard.dart';
 import 'admin/admin_dashboard.dart';
-import 'government/statistics_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -51,7 +50,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       appBar: AppBar(
         title: Text(_getAppTitle(userRole)),
         centerTitle: true,
-        backgroundColor: _getRoleColor(userRole),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        titleTextStyle: const TextStyle(
+          color: Color(0xFF4C1D95),
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFF4C1D95)),
         actions: _getAppBarActions(userRole, authProvider, context),
       ),
       body: screens.isNotEmpty ? screens[_selectedIndex] : const UnauthorizedScreen(),
@@ -61,9 +67,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               onTap: (index) => setState(() => _selectedIndex = index),
               type: BottomNavigationBarType.fixed,
               items: navItems,
-              selectedItemColor: _getRoleColor(userRole),
-              unselectedItemColor: Colors.grey,
-              showUnselectedLabels: true,
+              selectedItemColor: const Color(0xFF7C3AED),
+              unselectedItemColor: Colors.grey.shade400,
+              elevation: 0,
+              backgroundColor: Colors.white,
             )
           : null,
       floatingActionButton: _getFloatingActionButton(userRole, context),
@@ -80,7 +87,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         role == UserRole.orphanageDirector) {
       actions.add(
         IconButton(
-          icon: const Icon(Icons.directions_car),
+          icon: const Icon(Icons.directions_car, color: Color(0xFF7C3AED)),
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const TransportRequestScreen()));
           },
@@ -93,7 +100,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     if (role != UserRole.viewer && role != UserRole.donor && role != UserRole.governmentOfficial) {
       actions.add(
         IconButton(
-          icon: const Icon(Icons.person_add),
+          icon: const Icon(Icons.person_add, color: Color(0xFF7C3AED)),
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const EnrollChildScreen()));
           },
@@ -106,7 +113,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     if (role == UserRole.superAdmin || role == UserRole.orphanageDirector) {
       actions.add(
         IconButton(
-          icon: const Icon(Icons.add_business),
+          icon: const Icon(Icons.add_business, color: Color(0xFF7C3AED)),
           onPressed: () {
             _showAddOrphanageDialog(context);
           },
@@ -115,13 +122,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       );
     }
     
-    // Profile Menu
+    // Profile Menu - ALWAYS show for all roles
     actions.add(
       PopupMenuButton<String>(
-        icon: const Icon(Icons.person),
+        icon: const Icon(Icons.person, color: Color(0xFF7C3AED)),
         onSelected: (value) async {
           if (value == 'profile') {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
           } else if (value == 'logout') {
             await authProvider.logout();
             Navigator.pushReplacementNamed(context, '/login');
@@ -132,7 +139,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             value: 'profile',
             child: Row(
               children: [
-                Icon(Icons.account_circle),
+                Icon(Icons.account_circle, color: Color(0xFF7C3AED)),
                 SizedBox(width: 12),
                 Text('My Profile'),
               ],
@@ -301,7 +308,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         
       case UserRole.governmentOfficial:
         return [
-          GovernmentDashboard()];
+          GovernmentDashboard(),
+        ];
         
       case UserRole.viewer:
         return [
@@ -378,31 +386,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         return 'Viewer Portal';
       default:
         return 'Orphan Enrollment System';
-    }
-  }
-  
-  Color _getRoleColor(UserRole role) {
-    switch (role) {
-      case UserRole.superAdmin:
-        return Colors.purple;
-      case UserRole.healthcareWorker:
-        return Colors.teal;
-      case UserRole.orphanageDirector:
-        return Colors.blue;
-      case UserRole.orphanageStaff:
-        return Colors.lightBlue;
-      case UserRole.socialWorker:
-        return Colors.green;
-      case UserRole.villageHead:
-        return Colors.orange;
-      case UserRole.donor:
-        return Colors.pink;
-      case UserRole.governmentOfficial:
-        return Colors.indigo;
-      case UserRole.viewer:
-        return Colors.grey;
-      default:
-        return Colors.blue;
     }
   }
 }

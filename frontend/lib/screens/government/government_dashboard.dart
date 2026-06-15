@@ -74,10 +74,6 @@ class _GovernmentDashboardState extends State<GovernmentDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Government Portal'),
-        backgroundColor: Colors.indigo,
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : IndexedStack(
@@ -97,8 +93,8 @@ class _GovernmentDashboardState extends State<GovernmentDashboard> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.indigo,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: const Color(0xFF7C3AED),
+        unselectedItemColor: Colors.grey.shade400,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
           BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Orphanages'),
@@ -117,7 +113,7 @@ class _GovernmentDashboardState extends State<GovernmentDashboard> {
         children: [
           const Text(
             'National Overview',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
           ),
           const SizedBox(height: 4),
           Text(
@@ -129,11 +125,11 @@ class _GovernmentDashboardState extends State<GovernmentDashboard> {
           // Stats Row 1
           Row(
             children: [
-              Expanded(child: _buildStatCard('Orphanages', _totalOrphanages.toString(), Icons.business, Colors.indigo)),
+              _buildStatCard('Orphanages', '$_totalOrphanages', Icons.business, const Color(0xFF7C3AED)),
               const SizedBox(width: 12),
-              Expanded(child: _buildStatCard('Children', _totalChildren.toString(), Icons.people, Colors.green)),
+              _buildStatCard('Children', '$_totalChildren', Icons.people, const Color(0xFF10B981)),
               const SizedBox(width: 12),
-              Expanded(child: _buildStatCard('Staff', _totalStaff.toString(), Icons.people_outline, Colors.orange)),
+              _buildStatCard('Staff', '$_totalStaff', Icons.people_outline, const Color(0xFFF59E0B)),
             ],
           ),
           
@@ -142,73 +138,115 @@ class _GovernmentDashboardState extends State<GovernmentDashboard> {
           // Stats Row 2
           Row(
             children: [
-              Expanded(child: _buildStatCard('Emergency', _emergencyCases.toString(), Icons.emergency, Colors.red)),
+              _buildStatCard('Emergency', '$_emergencyCases', Icons.emergency, const Color(0xFFEF4444)),
               const SizedBox(width: 12),
-              Expanded(child: _buildStatCard('Placed', _placedChildren.toString(), Icons.check_circle, Colors.teal)),
+              _buildStatCard('Placed', '$_placedChildren', Icons.check_circle, const Color(0xFF8B5CF6)),
               const SizedBox(width: 12),
-              Expanded(child: _buildStatCard('Pending', _awaitingPlacement.toString(), Icons.pending, Colors.amber)),
+              _buildStatCard('Pending', '$_awaitingPlacement', Icons.pending, const Color(0xFFF59E0B)),
             ],
           ),
           
           const SizedBox(height: 24),
           
           // Compliance Card
-          Card(
-            color: Colors.indigo.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Compliance Overview',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Compliance Rate'),
-                      Text('${_averageCompliance.toStringAsFixed(1)}%', 
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(
-                    value: _averageCompliance / 100,
-                    backgroundColor: Colors.grey.shade200,
-                    color: Colors.indigo,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${_orphanages.where((o) => o['is_active'] == true).length} out of $_totalOrphanages orphanages are active',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF7C3AED).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Compliance Overview',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Compliance Rate', style: TextStyle(color: Color(0xFF4B5563))),
+                    Text(
+                      '${_averageCompliance.toStringAsFixed(1)}%',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF7C3AED)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: _averageCompliance / 100,
+                  backgroundColor: Colors.grey.shade200,
+                  color: const Color(0xFF7C3AED),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '${_orphanages.where((o) => o['is_active'] == true).length} out of $_totalOrphanages orphanages are active',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
             ),
           ),
           
           const SizedBox(height: 16),
           
           // District Distribution
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Orphanages by District',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const Divider(),
-                  _buildDistrictList(),
-                ],
-              ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Orphanages by District',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                ),
+                const Divider(),
+                _buildDistrictList(),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+  
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 24, color: color),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+            ),
+            Text(title, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+          ],
+        ),
       ),
     );
   }
@@ -240,8 +278,19 @@ class _GovernmentDashboardState extends State<GovernmentDashboard> {
         final currentChildren = o['current_children'] ?? 0;
         final staffCount = o['staff_count'] ?? 0;
         
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
           child: ListTile(
             leading: Container(
               padding: const EdgeInsets.all(8),
@@ -305,8 +354,19 @@ class _GovernmentDashboardState extends State<GovernmentDashboard> {
         final village = child['village'] ?? 'Unknown';
         final status = child['status'] ?? 'PENDING';
         
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: _getStatusColor(status),
@@ -354,34 +414,14 @@ class _GovernmentDashboardState extends State<GovernmentDashboard> {
     switch(status) {
       case 'EMERGENCY': return Colors.red;
       case 'PLACED': return Colors.green;
-      case 'APPROVED': return Colors.teal;
+      case 'APPROVED': return Colors.purple;
       case 'PENDING': return Colors.orange;
       case 'ENROLLED': return Colors.blue;
-      case 'REJECTED': return Colors.grey;
       default: return Colors.grey;
     }
   }
   
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        child: Column(
-          children: [
-            Icon(icon, size: 24, color: color),
-            const SizedBox(height: 4),
-            Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
-            Text(title, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-          ],
-        ),
-      ),
-    );
-  }
-  
   Widget _buildDistrictList() {
-    // Create a map of district counts
     final Map<String, int> districtCount = {};
     for (var o in _orphanages) {
       final district = o['district'] ?? 'Unknown';
@@ -407,12 +447,12 @@ class _GovernmentDashboardState extends State<GovernmentDashboard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.indigo.shade100,
+                color: const Color(0xFF7C3AED).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 entry.value.toString(),
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.indigo.shade800),
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF7C3AED)),
               ),
             ),
           ],
