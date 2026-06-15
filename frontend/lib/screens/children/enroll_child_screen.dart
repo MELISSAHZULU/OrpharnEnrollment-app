@@ -7,7 +7,7 @@ class EnrollChildScreen extends StatefulWidget {
   const EnrollChildScreen({super.key});
 
   @override
-  _EnrollChildScreenState createState() => _EnrollChildScreenState();
+  State<EnrollChildScreen> createState() => _EnrollChildScreenState();
 }
 
 class _EnrollChildScreenState extends State<EnrollChildScreen> {
@@ -119,7 +119,11 @@ class _EnrollChildScreenState extends State<EnrollChildScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Enroll New Child'),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF4C1D95),
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF4C1D95)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -130,14 +134,22 @@ class _EnrollChildScreenState extends State<EnrollChildScreen> {
             children: [
               // Personal Information Card
               Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Row(
+                        children: [
+                          Icon(Icons.person, color: const Color(0xFF7C3AED), size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
                         'Personal Information',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -209,14 +221,22 @@ class _EnrollChildScreenState extends State<EnrollChildScreen> {
               
               // Location Information Card
               Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, color: const Color(0xFF7C3AED), size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
                         'Location Information',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -245,14 +265,22 @@ class _EnrollChildScreenState extends State<EnrollChildScreen> {
               
               // Orphanage Assignment Card
               Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Row(
+                        children: [
+                          Icon(Icons.business, color: const Color(0xFF7C3AED), size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
                         'Orphanage Assignment',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -302,7 +330,7 @@ class _EnrollChildScreenState extends State<EnrollChildScreen> {
                                     _selectedOrphanageId = value;
                                   });
                                 },
-                                activeColor: Colors.blue,
+                                activeColor: const Color(0xFF7C3AED),
                               );
                             }).toList(),
                           ),
@@ -316,14 +344,22 @@ class _EnrollChildScreenState extends State<EnrollChildScreen> {
               
               // Guardian Information Card
               Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Row(
+                        children: [
+                          Icon(Icons.family_restroom, color: const Color(0xFF7C3AED), size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
                         'Guardian Information (Optional)',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -350,14 +386,22 @@ class _EnrollChildScreenState extends State<EnrollChildScreen> {
               
               // Reason for Care Card
               Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Row(
+                        children: [
+                          Icon(Icons.description, color: const Color(0xFF7C3AED), size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
                         'Reason for Care',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -381,13 +425,14 @@ class _EnrollChildScreenState extends State<EnrollChildScreen> {
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitEnrollment,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 child: _isSubmitting
-                    ? const CircularProgressIndicator()
+                    ? const CircularProgressIndicator(color: Colors.white)
                     : const Text('Submit Enrollment', style: TextStyle(fontSize: 16)),
               ),
             ],

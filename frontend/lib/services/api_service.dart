@@ -487,6 +487,48 @@ Future<Map<String, dynamic>> updateStaff(int staffId, Map<String, dynamic> staff
     }
   }
   
+
+  // Case Notes
+Future<List<dynamic>> getCaseNotes({int? childId}) async {
+  try {
+    String url = '$baseUrl/children/case-notes/';
+    if (childId != null) {
+      url += '?child=$childId';
+    }
+    
+    final response = await http.get(
+      Uri.parse(url),
+      headers: await _getHeaders(),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['results'] ?? data;
+    } else {
+      return [];
+    }
+  } catch (e) {
+    print('Error loading case notes: $e');
+    return [];
+  }
+}
+
+Future<Map<String, dynamic>> addCaseNote(int childId, String note) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/children/case-notes/'),
+    headers: await _getHeaders(),
+    body: json.encode({
+      'child': childId,
+      'note': note,
+    }),
+  );
+  
+  if (response.statusCode == 201) {
+    return json.decode(response.body);
+  } else {
+    throw Exception('Failed to add case note');
+  }
+}
   // ==================== DASHBOARD ====================
   
   Future<Map<String, dynamic>> getDashboardStats() async {

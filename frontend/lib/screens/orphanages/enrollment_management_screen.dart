@@ -84,7 +84,6 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
   }
   
   void _showAssignRoomDialog(dynamic child) async {
-    // Refresh rooms before showing dialog
     await _loadRooms();
     
     String? selectedRoomId;
@@ -124,7 +123,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                         
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
-                          color: isSelected ? Colors.blue.shade50 : null,
+                          color: isSelected ? const Color(0xFF7C3AED).withOpacity(0.1) : null,
                           child: RadioListTile<String>(
                             title: Text(
                               roomName,
@@ -176,7 +175,6 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                       Navigator.pop(context);
                       setState(() => _isLoading = true);
                       try {
-                        // Update child status to PLACED and assign room
                         await _apiService.updateChild(child['id'], {
                           'status': 'PLACED',
                           'assigned_room': selectedRoomId,
@@ -184,9 +182,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                           'placement_date': DateTime.now().toIso8601String(),
                         });
                         
-                        // Update room occupancy
                         await _apiService.updateRoomOccupancy(int.parse(selectedRoomId!));
-                        
                         await _loadEnrollments();
                         
                         if (mounted) {
@@ -207,7 +203,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                       }
                     }
                   : null,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
               child: const Text('Place Child'),
             ),
           ],
@@ -223,7 +219,11 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Enrollment Management'),
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF4C1D95),
+          elevation: 0,
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: Color(0xFF4C1D95)),
           bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.pending), text: 'Pending'),
@@ -244,6 +244,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
         floatingActionButton: FloatingActionButton(
           onPressed: () => _showAddRoomDialog(),
           child: const Icon(Icons.add),
+          backgroundColor: const Color(0xFF7C3AED),
           tooltip: 'Add Room/Hostel',
         ),
       ),
@@ -285,7 +286,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: type == 'emergency' ? Colors.red : Colors.orange,
+                      backgroundColor: type == 'emergency' ? Colors.red : const Color(0xFF7C3AED),
                       child: Text(
                         fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
                         style: const TextStyle(color: Colors.white),
@@ -298,13 +299,13 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                         children: [
                           Text(
                             fullName.isEmpty ? 'Unnamed Child' : fullName,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
                           ),
-                          Text('Age: $age | Village: $village'),
+                          Text('Age: $age | Village: $village', style: TextStyle(color: Colors.grey[600])),
                           const SizedBox(height: 4),
                           Chip(
                             label: Text(child['status'] ?? 'UNKNOWN'),
-                            backgroundColor: type == 'emergency' ? Colors.red.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
+                            backgroundColor: type == 'emergency' ? Colors.red.withOpacity(0.2) : const Color(0xFF7C3AED).withOpacity(0.2),
                           ),
                         ],
                       ),
@@ -320,13 +321,13 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                     if (type != 'emergency')
                       ElevatedButton(
                         onPressed: () => _updateStatus(child, 'APPROVED'),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
                         child: const Text('Approve'),
                       ),
                     if (type == 'emergency')
                       ElevatedButton(
                         onPressed: () => _showAssignRoomDialog(child),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
                         child: const Text('Place Now'),
                       ),
                     const SizedBox(width: 8),
@@ -374,7 +375,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
         
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
-          color: Colors.green.shade50,
+          color: const Color(0xFF7C3AED).withOpacity(0.1),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -383,7 +384,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                 Row(
                   children: [
                     const CircleAvatar(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Color(0xFF7C3AED),
                       child: Icon(Icons.check, color: Colors.white),
                     ),
                     const SizedBox(width: 12),
@@ -393,13 +394,13 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                         children: [
                           Text(
                             fullName.isEmpty ? 'Unnamed Child' : fullName,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
                           ),
-                          Text('Age: $age'),
+                          Text('Age: $age', style: TextStyle(color: Colors.grey[600])),
                           if (assignedRoom != null)
-                            Text('Room: ${_getRoomName(int.parse(assignedRoom.toString()))}'),
+                            Text('Room: ${_getRoomName(int.parse(assignedRoom.toString()))}', style: TextStyle(color: Colors.grey[600])),
                           if (assignedBed != null && assignedBed.toString().isNotEmpty)
-                            Text('Bed: $assignedBed'),
+                            Text('Bed: $assignedBed', style: TextStyle(color: Colors.grey[600])),
                         ],
                       ),
                     ),
@@ -472,6 +473,7 @@ class _EnrollmentManagementScreenState extends State<EnrollmentManagementScreen>
                 );
               }
             },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
             child: const Text('Add'),
           ),
         ],

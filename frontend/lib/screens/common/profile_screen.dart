@@ -6,6 +6,7 @@ import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+  
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -14,9 +15,12 @@ class ProfileScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Profile'),
-        backgroundColor: _getRoleColor(role),
+        title: const Text('My Profile'),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF4C1D95),
         elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF4C1D95)),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -24,57 +28,61 @@ class ProfileScreen extends StatelessWidget {
             // Header with Avatar
             Container(
               decoration: BoxDecoration(
-                color: _getRoleColor(role),
-                borderRadius: BorderRadius.only(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF7C3AED), Color(0xFFC084FC)],
+                ),
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
                 ),
               ),
               child: Column(
                 children: [
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: Colors.white,
                     child: CircleAvatar(
                       radius: 56,
-                      backgroundColor: _getRoleColor(role).withOpacity(0.2),
+                      backgroundColor: const Color(0xFF7C3AED).withOpacity(0.2),
                       child: Icon(
                         _getRoleIcon(role),
                         size: 50,
-                        color: _getRoleColor(role),
+                        color: Colors.white,
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     user?.fullName ?? 'User Name',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       role.displayName,
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
             
             // Profile Information Section
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -83,15 +91,15 @@ class ProfileScreen extends StatelessWidget {
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Padding(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Personal Information',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
                           ),
-                          Divider(),
+                          const Divider(),
                           _buildInfoRow(Icons.person, 'Username', user?.username ?? 'N/A'),
                           _buildInfoRow(Icons.email, 'Email', user?.email ?? 'Not set'),
                           _buildInfoRow(Icons.phone, 'Phone', user?.phoneNumber ?? 'Not set'),
@@ -102,31 +110,31 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   
                   // Permissions Card
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Padding(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Your Permissions',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
                           ),
-                          Divider(),
+                          const Divider(),
                           ..._getPermissionsForRole(role).take(6).map(
                             (permission) => _buildPermissionTile(permission),
                           ),
                           if (_getPermissionsForRole(role).length > 6)
                             Padding(
-                              padding: EdgeInsets.only(top: 8),
+                              padding: const EdgeInsets.only(top: 8),
                               child: Text(
                                 '+ ${_getPermissionsForRole(role).length - 6} more permissions',
-                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                                style: TextStyle(color: Colors.grey[600], fontSize: 12),
                               ),
                             ),
                         ],
@@ -134,7 +142,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   
                   // Actions Card
                   Card(
@@ -143,46 +151,46 @@ class ProfileScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         ListTile(
-                          leading: Icon(Icons.lock_outline, color: Colors.blue),
-                          title: Text('Change Password'),
-                          trailing: Icon(Icons.chevron_right),
+                          leading: const Icon(Icons.lock_outline, color: Color(0xFF7C3AED)),
+                          title: const Text('Change Password', style: TextStyle(color: Color(0xFF1F2937))),
+                          trailing: const Icon(Icons.chevron_right, color: Color(0xFF7C3AED)),
                           onTap: () => _showChangePasswordDialog(context, authProvider),
                         ),
-                        Divider(height: 1),
+                        const Divider(height: 1),
                         ListTile(
-                          leading: Icon(Icons.privacy_tip, color: Colors.blue),
-                          title: Text('Privacy Policy'),
-                          trailing: Icon(Icons.chevron_right),
+                          leading: const Icon(Icons.privacy_tip, color: Color(0xFF7C3AED)),
+                          title: const Text('Privacy Policy', style: TextStyle(color: Color(0xFF1F2937))),
+                          trailing: const Icon(Icons.chevron_right, color: Color(0xFF7C3AED)),
                           onTap: () => _showPrivacyPolicy(context),
                         ),
-                        Divider(height: 1),
+                        const Divider(height: 1),
                         ListTile(
-                          leading: Icon(Icons.help_outline, color: Colors.blue),
-                          title: Text('Help & Support'),
-                          trailing: Icon(Icons.chevron_right),
+                          leading: const Icon(Icons.help_outline, color: Color(0xFF7C3AED)),
+                          title: const Text('Help & Support', style: TextStyle(color: Color(0xFF1F2937))),
+                          trailing: const Icon(Icons.chevron_right, color: Color(0xFF7C3AED)),
                           onTap: () => _showHelp(context),
                         ),
-                        Divider(height: 1),
+                        const Divider(height: 1),
                         ListTile(
-                          leading: Icon(Icons.logout, color: Colors.red),
-                          title: Text('Logout', style: TextStyle(color: Colors.red)),
-                          trailing: Icon(Icons.chevron_right, color: Colors.red),
+                          leading: const Icon(Icons.logout, color: Colors.red),
+                          title: const Text('Logout', style: TextStyle(color: Colors.red)),
+                          trailing: const Icon(Icons.chevron_right, color: Colors.red),
                           onTap: () => _showLogoutDialog(context, authProvider),
                         ),
                       ],
                     ),
                   ),
                   
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   
                   // App Version
                   Center(
                     child: Text(
                       'Version 1.0.0',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -194,16 +202,16 @@ class ProfileScreen extends StatelessWidget {
   
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.blue.shade600),
-          SizedBox(width: 12),
+          Icon(icon, size: 20, color: const Color(0xFF7C3AED)),
+          const SizedBox(width: 12),
           SizedBox(width: 100, child: Text(label, style: TextStyle(color: Colors.grey[600]))),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF1F2937)),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -214,12 +222,12 @@ class ProfileScreen extends StatelessWidget {
   
   Widget _buildPermissionTile(String permission) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(Icons.check_circle, size: 18, color: Colors.green),
-          SizedBox(width: 12),
-          Text(permission),
+          const Icon(Icons.check_circle, size: 18, color: Color(0xFF7C3AED)),
+          const SizedBox(width: 12),
+          Text(permission, style: const TextStyle(color: Color(0xFF4B5563))),
         ],
       ),
     );
@@ -285,34 +293,34 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Change Password'),
+        title: const Text('Change Password'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: currentPasswordController,
               obscureText: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Current Password',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.lock),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             TextField(
               controller: newPasswordController,
               obscureText: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'New Password',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.lock_outline),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             TextField(
               controller: confirmPasswordController,
               obscureText: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Confirm New Password',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.lock_outline),
@@ -323,20 +331,20 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
               if (newPasswordController.text != confirmPasswordController.text) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Passwords do not match'), backgroundColor: Colors.red),
+                  const SnackBar(content: Text('Passwords do not match'), backgroundColor: Colors.red),
                 );
                 return;
               }
               try {
                 // Add API call here
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Password changed!'), backgroundColor: Colors.green),
+                  const SnackBar(content: Text('Password changed!'), backgroundColor: Colors.green),
                 );
                 Navigator.pop(context);
               } catch (e) {
@@ -345,7 +353,8 @@ class ProfileScreen extends StatelessWidget {
                 );
               }
             },
-            child: Text('Change Password'),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
+            child: const Text('Change Password'),
           ),
         ],
       ),
@@ -356,24 +365,24 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Logout'),
-        content: Text('Are you sure you want to logout?'),
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
               await authProvider.logout();
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
                 (route) => false,
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('Logout'),
+            child: const Text('Logout'),
           ),
         ],
       ),
@@ -384,18 +393,19 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Privacy Policy'),
+        title: const Text('Privacy Policy'),
         content: SingleChildScrollView(
           child: Text(
             'We value your privacy. This app collects information about orphans '
             'and staff for management purposes only. Your data is protected and '
             'not shared with third parties without consent.',
+            style: TextStyle(color: Colors.grey[700]),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -406,23 +416,23 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Help & Support'),
+        title: const Text('Help & Support'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('For support, contact:'),
-            SizedBox(height: 8),
-            Text('📧 support@orphanage.mw'),
-            Text('📞 +265 123 456 789'),
-            SizedBox(height: 8),
-            Text('Working Hours: Mon-Fri, 8am-5pm'),
+            const Text('For support, contact:'),
+            const SizedBox(height: 8),
+            const Text('📧 support@orphanage.mw'),
+            const Text('📞 +265 123 456 789'),
+            const SizedBox(height: 8),
+            const Text('Working Hours: Mon-Fri, 8am-5pm'),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -434,23 +444,23 @@ class ProfileScreen extends StatelessWidget {
       case UserRole.superAdmin:
         return Colors.purple;
       case UserRole.healthcareWorker:
-        return Colors.teal;
+        return const Color(0xFF7C3AED);
       case UserRole.orphanageDirector:
-        return Colors.blue;
+        return const Color(0xFF7C3AED);
       case UserRole.orphanageStaff:
-        return Colors.lightBlue;
+        return const Color(0xFF7C3AED);
       case UserRole.socialWorker:
-        return Colors.green;
+        return const Color(0xFF7C3AED);
       case UserRole.villageHead:
-        return Colors.orange;
+        return const Color(0xFF7C3AED);
       case UserRole.donor:
-        return Colors.pink;
+        return const Color(0xFF7C3AED);
       case UserRole.governmentOfficial:
-        return Colors.indigo;
+        return const Color(0xFF7C3AED);
       case UserRole.viewer:
-        return Colors.grey;
+        return const Color(0xFF7C3AED);
       default:
-        return Colors.blue;
+        return const Color(0xFF7C3AED);
     }
   }
   

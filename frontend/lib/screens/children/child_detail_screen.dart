@@ -130,17 +130,21 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(fullName.isEmpty ? 'Child Details' : fullName),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF4C1D95),
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF4C1D95)),
         actions: [
           if (!_isEditing)
             IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(Icons.edit, color: Color(0xFF7C3AED)),
               onPressed: () => setState(() => _isEditing = true),
             ),
           if (_isEditing)
             TextButton(
               onPressed: _isLoading ? null : _updateChild,
-              child: const Text('Save', style: TextStyle(color: Colors.white)),
+              child: const Text('Save', style: TextStyle(color: Color(0xFF4C1D95))),
             ),
           if (_isEditing)
             TextButton(
@@ -150,7 +154,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
                   _initControllers();
                 });
               },
-              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
         ],
       ),
@@ -171,14 +175,15 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
         children: [
           // Profile Header
           Card(
-            color: Colors.blue.shade50,
+            color: const Color(0xFF7C3AED).withOpacity(0.1),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundColor: Colors.blue,
+                    backgroundColor: const Color(0xFF7C3AED),
                     child: Text(
                       fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
                       style: const TextStyle(fontSize: 32, color: Colors.white),
@@ -191,12 +196,13 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
                       children: [
                         Text(
                           fullName.isEmpty ? 'Unnamed Child' : fullName,
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
                         ),
                         const SizedBox(height: 4),
                         Chip(
                           label: Text(status),
-                          backgroundColor: Colors.blue.shade100,
+                          backgroundColor: const Color(0xFF7C3AED).withOpacity(0.2),
+                          labelStyle: const TextStyle(color: Color(0xFF7C3AED)),
                         ),
                       ],
                     ),
@@ -210,6 +216,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
           
           // Information Card
           Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -217,7 +224,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
                 children: [
                   const Text(
                     'Personal Information',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
                   ),
                   const Divider(),
                   _buildDetailRow('First Name', _childData['first_name']?.toString() ?? 'Not specified'),
@@ -243,6 +250,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
           
           // Quick Actions Card
           Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -250,17 +258,17 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
                 children: [
                   const Text(
                     'Quick Actions',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
                   ),
                   const Divider(),
                   ListTile(
                     leading: const CircleAvatar(
-                      backgroundColor: Colors.orange,
+                      backgroundColor: Color(0xFF7C3AED),
                       child: Icon(Icons.directions_car, color: Colors.white),
                     ),
-                    title: const Text('Request Transport'),
-                    subtitle: const Text('Arrange pickup or drop-off transport'),
-                    trailing: const Icon(Icons.chevron_right),
+                    title: const Text('Request Transport', style: TextStyle(color: Color(0xFF1F2937))),
+                    subtitle: const Text('Arrange pickup or drop-off transport', style: TextStyle(color: Colors.grey)),
+                    trailing: const Icon(Icons.chevron_right, color: Color(0xFF7C3AED)),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -275,12 +283,12 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
                   ),
                   ListTile(
                     leading: const CircleAvatar(
-                      backgroundColor: Colors.teal,
+                      backgroundColor: Color(0xFF7C3AED),
                       child: Icon(Icons.medical_services, color: Colors.white),
                     ),
-                    title: const Text('Medical Records'),
-                    subtitle: const Text('View and add medical information'),
-                    trailing: const Icon(Icons.chevron_right),
+                    title: const Text('Medical Records', style: TextStyle(color: Color(0xFF1F2937))),
+                    subtitle: const Text('View and add medical information', style: TextStyle(color: Colors.grey)),
+                    trailing: const Icon(Icons.chevron_right, color: Color(0xFF7C3AED)),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -295,12 +303,12 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
                   ),
                   ListTile(
                     leading: const CircleAvatar(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Color(0xFF7C3AED),
                       child: Icon(Icons.note, color: Colors.white),
                     ),
-                    title: const Text('Case Notes'),
-                    subtitle: const Text('Document case progress and notes'),
-                    trailing: const Icon(Icons.chevron_right),
+                    title: const Text('Case Notes', style: TextStyle(color: Color(0xFF1F2937))),
+                    subtitle: const Text('Document case progress and notes', style: TextStyle(color: Colors.grey)),
+                    trailing: const Icon(Icons.chevron_right, color: Color(0xFF7C3AED)),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -336,7 +344,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
             ),
           ),
           Expanded(
-            child: Text(value),
+            child: Text(value, style: const TextStyle(color: Color(0xFF1F2937))),
           ),
         ],
       ),
@@ -349,6 +357,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
       child: Form(
         key: _formKey,
         child: Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -399,6 +408,9 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
                             _initControllers();
                           });
                         },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF7C3AED)),
+                        ),
                         child: const Text('Cancel'),
                       ),
                     ),
@@ -406,6 +418,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: _updateChild,
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
                         child: const Text('Save Changes'),
                       ),
                     ),
